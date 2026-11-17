@@ -107,10 +107,10 @@ section.block{padding:38px 0 8px}
   padding:26px;display:grid;grid-template-columns:340px 1fr;gap:30px;align-items:center;position:relative;overflow:hidden}
 .wheel-card::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
   background:radial-gradient(300px 160px at 12% 0%, var(--sun-soft), transparent 70%),radial-gradient(300px 200px at 100% 100%, var(--pink-soft), transparent 70%)}
-.wheel-stage{position:relative;width:320px;height:320px;margin:0 auto}
+.wheel-stage{position:relative;width:320px;max-width:100%;aspect-ratio:1/1;margin:0 auto;flex:none}
+.wheel-stage::before{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 12px 18px rgba(30,58,95,.22);pointer-events:none}
 .wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:3;width:38px;height:44px}
-#wheelSvg{width:320px;height:320px;filter:drop-shadow(0 12px 18px rgba(30,58,95,.22))}
-#wheelSvg .wheel-rotor{transition:transform 4.6s cubic-bezier(.12,.72,.08,1);transform-origin:160px 160px}
+#wheelSvg{display:block;position:relative;width:100%;height:100%}
 .wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:86px;height:86px;border-radius:50%;
   background:var(--navy);color:#FFF6E5;border:4px solid var(--card);z-index:2;display:grid;place-items:center;text-align:center;
   font-family:"Baloo 2",sans-serif;font-weight:800;font-size:.78rem;line-height:1.2;padding:6px;box-shadow:var(--shadow)}
@@ -131,6 +131,15 @@ section.block{padding:38px 0 8px}
   padding:6px 14px;font-weight:800;font-size:.86rem;min-height:2.4rem;transition:transform .12s ease, background .12s}
 .pill:hover{transform:translateY(-1px)}
 .pill[aria-pressed="true"]{background:var(--coral);border-color:var(--coral);color:#fff}
+/* plain select lists for country / city — no search, no type-to-filter */
+.select-wrap{position:relative}
+.select-wrap::after{content:"";position:absolute;right:16px;top:50%;width:9px;height:9px;pointer-events:none;
+  border-right:2.4px solid var(--muted);border-bottom:2.4px solid var(--muted);transform:translateY(-70%) rotate(45deg)}
+.plain-select{width:100%;min-width:0;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;
+  padding:10px 42px 10px 14px;font:inherit;font-weight:800;font-size:.95rem;min-height:2.75rem;
+  appearance:none;-webkit-appearance:none;cursor:pointer}
+.plain-select:disabled{opacity:.55;cursor:default}
+.select-hint{margin-top:6px;font-size:.78rem;font-weight:700;color:var(--muted)}
 .spin-btn{background:var(--coral);color:#fff;border:0;border-radius:999px;padding:13px 30px;font-weight:800;font-size:1.08rem;
   box-shadow:0 6px 0 var(--coral-d);display:inline-flex;gap:9px;align-items:center;transition:transform .15s}
 .spin-btn:hover{transform:translateY(-2px) rotate(-1deg)}
@@ -191,8 +200,7 @@ footer.site p{margin:0;color:var(--muted);font-size:.88rem;font-weight:600}
 }
 @media (max-width:480px){.lang-switch button{padding:6px 9px;font-size:.8rem}.brand{font-size:1rem}}
 @media (max-width:420px){
-  .wheel-stage,#wheelSvg{width:280px;height:280px}
-  #wheelSvg .wheel-rotor{transform-origin:140px 140px}
+  .wheel-stage{width:280px}
   .brand small{display:none}
   .cat-tabs{gap:9px}
   .cat-tab{padding:13px 8px 11px}
@@ -273,10 +281,16 @@ footer.site p{margin:0;color:var(--muted);font-size:.88rem;font-weight:600}
           <div class="row-label"><span class="step-chip">1</span> <span data-i18n="tStep1">Choose a continent</span></div>
           <div class="pill-row" id="regionPills" role="group" aria-label="Continent"></div>
           <div class="row-label" style="margin-top:13px"><span class="step-chip">2</span> <span data-i18n="tStep2">Choose a country — or spin one</span></div>
-          <div class="pill-row" id="countryPills" role="group" aria-label="Country"></div>
+          <div class="select-wrap">
+            <select class="plain-select" id="countrySelect" aria-label="Country"></select>
+          </div>
+          <div class="select-hint" id="countryHint"></div>
           <div style="margin-top:9px"><button type="button" class="mini-spin" id="spinCountryBtn"><svg width="15" height="15"><use href="#i-spark"/></svg><span data-i18n="spinCountry">Spin a country</span></button></div>
           <div class="row-label" style="margin-top:13px"><span class="step-chip">3</span> <span data-i18n="tStep3">Choose a city — or spin the big wheel</span></div>
-          <div class="pill-row" id="cityPills" role="group" aria-label="City"></div>
+          <div class="select-wrap">
+            <select class="plain-select" id="citySelect" aria-label="City"></select>
+          </div>
+          <div class="select-hint" id="cityHint"></div>
         </div>
         <button type="button" class="spin-btn" id="spinBtn"><svg width="20" height="20"><use href="#i-spark"/></svg><span data-i18n="spin">Spin the wheel</span></button>
         <div class="spin-result" id="spinResult" aria-live="polite"></div>
@@ -364,6 +378,8 @@ var TRAVEL_TREE = [
 {n:["Ho Chi Minh City","胡志明市","ホーチミン市"],d:["French-era landmarks, history and buzzing Ben Thanh.","法式地標、歷史，還有熱鬧的濱城市場。","フランス時代の建物、歴史、賑やかなベンタイン市場。"],v:["Ben Thanh Market","濱城市場","ベンタイン市場"],b:["Lacquerware","漆器","漆器"],e:["Banh mi","越南法包","バインミー"]}]},
 {r:"asia",c:["Hong Kong","香港","香港"],cities:[
 {n:["Hong Kong","香港","香港"],d:["Skyscrapers, harbour ferries and dim sum trolleys.","摩天大樓、海港渡輪和點心推車。","高層ビル、港のフェリー、点心のワゴン。"],v:["Victoria Peak","太平山頂","ビクトリアピーク"],b:["Jenny Bakery cookies","珍妮曲奇","ジェニーベーカリーのクッキー"],e:["Dim sum","點心","点心"]}]},
+{r:"asia",c:["Macau","澳門","マカオ"],cities:[
+{n:["Macau","澳門","マカオ"],d:["UNESCO old town, Portuguese lanes and Cotai&rsquo;s glittering resorts.","世界遺產老城、葡式街道，還有路氹閃亮的度假區。","世界遺産の旧市街、ポルトガル風の路地、コタイの輝くリゾート。"],v:["Ruins of St. Paul&rsquo;s, Senado Square & Cotai resorts","大三巴牌坊、議事亭前地與路氹度假區","聖ポール天主堂跡、セナド広場、コタイのリゾートエリア"],b:["Portuguese egg tarts, almond cookies & pork jerky","葡式蛋撻、杏仁餅與豬肉乾","ポルトガル風エッグタルト、アーモンドクッキー、ポークジャーキー"],e:["Portuguese & Macanese dishes and egg tarts","葡國菜、澳門土生葡菜與蛋撻","ポルトガル料理、マカオ料理、エッグタルト"]}]},
 {r:"europe",c:["France","法國","フランス"],cities:[
 {n:["Paris","巴黎","パリ"],d:["Eiffel views, museum days and croissant mornings.","鐵塔風景、博物館日，和可頌的早晨。","エッフェルの眺め、美術館、クロワッサンの朝。"],v:["Eiffel Tower","艾菲爾鐵塔","エッフェル塔"],b:["Macarons","馬卡龍","マカロン"],e:["Croissant breakfast","可頌早餐","クロワッサンの朝食"]},
 {n:["Nice","尼斯","ニース"],d:["Azure sea, old-town lanes and Riviera sunshine.","蔚藍海岸、老城巷弄和南法陽光。","紺碧の海、旧市街の路地、リビエラの太陽。"],v:["Promenade des Anglais","英國人散步大道","プロムナード・デ・ザングレ"],b:["Provencal lavender soap","普羅旺斯薰衣草皂","プロヴァンスのラベンダー石鹸"],e:["Salade Nicoise","尼斯沙拉","ニース風サラダ"]},
@@ -480,6 +496,91 @@ TRAVEL_TREE = TRAVEL_TREE.concat([
 {n:["Port Louis","路易港","ポートルイス"],d:["Markets, a waterfront and mountains behind the capital.","市集、海濱，首都背後是山。","市場、ウォーターフロント、首都の後ろの山。"],v:["Caudan Waterfront & central market","蔻丹海濱與中央市場","コーダンウォーターフロントと中央市場"],b:["Mauritian rum","模里西斯蘭姆酒","モーリシャス・ラム"],e:["Dholl puri","豆餅","ドールプリ"]},
 {n:["Grand Baie","大灣","グランベ"],d:["Beach days, catamarans and Creole flavours.","海灘日、雙體船和克里奧風味。","ビーチの日々、カタマラン、クレオールの味。"],v:["Beaches & catamaran trips","海灘與雙體船之旅","ビーチとカタマラン"],b:["Model ship crafts","模型船工藝品","模型船工芸"],e:["Creole fish curry","克里奧魚咖哩","クレオールフィッシュカレー"]}]}
 ]);
+TRAVEL_TREE = TRAVEL_TREE.concat([
+{r:"asia",c:["China","中國","中国"],cities:[{n:["Beijing","北京","北京"],d:["Home to Forbidden City — come hungry for Peking duck.","以故宮聞名 — 別錯過北京烤鴨。","紫禁城で知られる街 — 北京ダックもお楽しみに。"],v:["Forbidden City","故宮","紫禁城"],b:["Silk & tea gifts","絲綢與茶葉禮盒","シルクとお茶"],e:["Peking duck","北京烤鴨","北京ダック"]},{n:["Shanghai","上海","上海"],d:["Home to The Bund — come hungry for Xiaolongbao.","以外灘聞名 — 別錯過小籠包。","外灘（バンド）で知られる街 — 小籠包もお楽しみに。"],v:["The Bund","外灘","外灘（バンド）"],b:["Shanghai silk souvenirs","上海絲綢紀念品","上海シルク土産"],e:["Xiaolongbao","小籠包","小籠包"]}]},
+{r:"asia",c:["India","印度","インド"],cities:[{n:["Delhi","德里","デリー"],d:["Home to Red Fort — come hungry for Butter chicken.","以紅堡聞名 — 別錯過奶油咖哩雞。","ラール・キラーで知られる街 — バターチキンもお楽しみに。"],v:["Red Fort","紅堡","ラール・キラー"],b:["Pashmina shawls","帕什米納披肩","パシュミナ"],e:["Butter chicken","奶油咖哩雞","バターチキン"]},{n:["Jaipur","齋浦爾","ジャイプル"],d:["Home to Amber Fort — come hungry for Laal maas.","以琥珀堡聞名 — 別錯過辣羊肉咖哩。","アンベール城で知られる街 — ラール・マースもお楽しみに。"],v:["Amber Fort","琥珀堡","アンベール城"],b:["Block-print textiles","木刻印花布","ブロックプリント布"],e:["Laal maas","辣羊肉咖哩","ラール・マース"]}]},
+{r:"asia",c:["Indonesia","印尼","インドネシア"],cities:[{n:["Bali","峇里島","バリ"],d:["Home to Uluwatu Temple — come hungry for Babi guling.","以烏魯瓦圖廟聞名 — 別錯過烤乳豬。","ウルワツ寺院で知られる街 — バビ・グリンもお楽しみに。"],v:["Uluwatu Temple","烏魯瓦圖廟","ウルワツ寺院"],b:["Balinese wood carvings","峇里木雕","バリ木彫り"],e:["Babi guling","烤乳豬","バビ・グリン"]},{n:["Yogyakarta","日惹","ジョグジャカルタ"],d:["Home to Borobudur — come hungry for Gudeg.","以婆羅浮屠聞名 — 別錯過椰奶燉菠蘿蜜。","ボロブドゥールで知られる街 — グデッもお楽しみに。"],v:["Borobudur","婆羅浮屠","ボロブドゥール"],b:["Batik cloth","蠟染布","バティック"],e:["Gudeg","椰奶燉菠蘿蜜","グデッ"]}]},
+{r:"asia",c:["Philippines","菲律賓","フィリピン"],cities:[{n:["Manila","馬尼拉","マニラ"],d:["Home to Intramuros — come hungry for Adobo.","以王城區聞名 — 別錯過阿多波燉肉。","イントラムロスで知られる街 — アドボもお楽しみに。"],v:["Intramuros","王城區","イントラムロス"],b:["Barong & pearl gifts","巴隆衫與珍珠","バロンと真珠"],e:["Adobo","阿多波燉肉","アドボ"]},{n:["Cebu","宿霧","セブ"],d:["Home to Magellan's Cross — come hungry for Lechon.","以麥哲倫十字架聞名 — 別錯過烤乳豬。","マゼラン十字架で知られる街 — レチョンもお楽しみに。"],v:["Magellan's Cross","麥哲倫十字架","マゼラン十字架"],b:["Dried mangoes","芒果乾","ドライマンゴー"],e:["Lechon","烤乳豬","レチョン"]}]},
+{r:"asia",c:["Cambodia","柬埔寨","カンボジア"],cities:[{n:["Siem Reap","暹粒","シェムリアップ"],d:["Home to Angkor Wat — come hungry for Fish amok.","以吳哥窟聞名 — 別錯過魚阿莫克。","アンコール・ワットで知られる街 — フィッシュ・アモックもお楽しみに。"],v:["Angkor Wat","吳哥窟","アンコール・ワット"],b:["Krama scarves","格羅麻圍巾","クラマー"],e:["Fish amok","魚阿莫克","フィッシュ・アモック"]},{n:["Phnom Penh","金邊","プノンペン"],d:["Home to Royal Palace — come hungry for Nom banh chok.","以王宮聞名 — 別錯過高棉魚湯麵。","王宮で知られる街 — ノム・バンチョックもお楽しみに。"],v:["Royal Palace","王宮","王宮"],b:["Cambodian silk","柬埔寨絲綢","カンボジアシルク"],e:["Nom banh chok","高棉魚湯麵","ノム・バンチョック"]}]},
+{r:"asia",c:["Laos","寮國","ラオス"],cities:[{n:["Luang Prabang","龍坡邦","ルアンパバーン"],d:["Home to Kuang Si Falls — come hungry for Laap.","以光西瀑布聞名 — 別錯過肉末沙拉。","クアンシー滝で知られる街 — ラープもお楽しみに。"],v:["Kuang Si Falls","光西瀑布","クアンシー滝"],b:["Lao textiles","寮國織品","ラオス織物"],e:["Laap","肉末沙拉","ラープ"]},{n:["Vientiane","永珍","ヴィエンチャン"],d:["Home to Pha That Luang — come hungry for Khao piak sen.","以塔鑾聞名 — 別錯過米粉湯。","パー・タート・ルアンで知られる街 — カオ・ピアック・センもお楽しみに。"],v:["Pha That Luang","塔鑾","パー・タート・ルアン"],b:["Lao coffee","寮國咖啡","ラオスコーヒー"],e:["Khao piak sen","米粉湯","カオ・ピアック・セン"]}]},
+{r:"asia",c:["Nepal","尼泊爾","ネパール"],cities:[{n:["Kathmandu","加德滿都","カトマンズ"],d:["Home to Swayambhunath — come hungry for Dal bhat.","以猴廟聞名 — 別錯過豆湯飯定食。","スワヤンブナートで知られる街 — ダルバートもお楽しみに。"],v:["Swayambhunath","猴廟","スワヤンブナート"],b:["Singing bowls","頌缽","シンギングボウル"],e:["Dal bhat","豆湯飯定食","ダルバート"]},{n:["Pokhara","博卡拉","ポカラ"],d:["Home to Phewa Lake — come hungry for Momos.","以費瓦湖聞名 — 別錯過尼泊爾餃子。","フェワ湖で知られる街 — モモもお楽しみに。"],v:["Phewa Lake","費瓦湖","フェワ湖"],b:["Thangka paintings","唐卡","タンカ"],e:["Momos","尼泊爾餃子","モモ"]}]},
+{r:"asia",c:["Sri Lanka","斯里蘭卡","スリランカ"],cities:[{n:["Colombo","可倫坡","コロンボ"],d:["Home to Gangaramaya Temple — come hungry for Hoppers & kottu.","以岡嘎拉馬雅寺聞名 — 別錯過漏斗餅與炒餅。","ガンガラーマ寺院で知られる街 — ホッパーとコットゥもお楽しみに。"],v:["Gangaramaya Temple","岡嘎拉馬雅寺","ガンガラーマ寺院"],b:["Ceylon tea","錫蘭紅茶","セイロンティー"],e:["Hoppers & kottu","漏斗餅與炒餅","ホッパーとコットゥ"]},{n:["Kandy","康提","キャンディ"],d:["Home to Temple of the Tooth — come hungry for Rice and curry.","以佛牙寺聞名 — 別錯過米飯咖哩。","仏歯寺で知られる街 — ライス＆カレーもお楽しみに。"],v:["Temple of the Tooth","佛牙寺","仏歯寺"],b:["Batik & gems","蠟染與寶石","バティックと宝石"],e:["Rice and curry","米飯咖哩","ライス＆カレー"]}]},
+{r:"asia",c:["Bhutan","不丹","ブータン"],cities:[{n:["Thimphu","廷布","ティンプー"],d:["Home to Tashichho Dzong — come hungry for Ema datshi.","以扎西卻宗聞名 — 別錯過辣椒起司。","タシチョ・ゾンで知られる街 — エマ・ダツィもお楽しみに。"],v:["Tashichho Dzong","扎西卻宗","タシチョ・ゾン"],b:["Bhutanese woven textiles","不丹織品","ブータン織物"],e:["Ema datshi","辣椒起司","エマ・ダツィ"]},{n:["Paro","帕羅","パロ"],d:["Home to Tiger's Nest Monastery — come hungry for Suja butter tea.","以虎穴寺聞名 — 別錯過酥油茶。","タイガーネストで知られる街 — バター茶もお楽しみに。"],v:["Tiger's Nest Monastery","虎穴寺","タイガーネスト"],b:["Archery souvenirs","射箭紀念品","弓道土産"],e:["Suja butter tea","酥油茶","バター茶"]}]},
+{r:"asia",c:["Mongolia","蒙古","モンゴル"],cities:[{n:["Ulaanbaatar","烏蘭巴托","ウランバートル"],d:["Home to Gandan Monastery — come hungry for Buuz.","以甘丹寺聞名 — 別錯過蒙古蒸餃。","ガンダン寺で知られる街 — ボーズもお楽しみに。"],v:["Gandan Monastery","甘丹寺","ガンダン寺"],b:["Cashmere","羊絨製品","カシミヤ"],e:["Buuz","蒙古蒸餃","ボーズ"]},{n:["Kharkhorin","哈拉和林","カラコルム"],d:["Home to Erdene Zuu Monastery — come hungry for Khorkhog.","以光顯寺聞名 — 別錯過蒙古石烤肉。","エルデネ・ゾーで知られる街 — ホルホグもお楽しみに。"],v:["Erdene Zuu Monastery","光顯寺","エルデネ・ゾー"],b:["Felt crafts","毛氈工藝品","フェルト工芸"],e:["Khorkhog","蒙古石烤肉","ホルホグ"]}]},
+{r:"asia",c:["Maldives","馬爾地夫","モルディブ"],cities:[{n:["Male","馬列","マレ"],d:["Home to Old Friday Mosque — come hungry for Mas huni.","以古星期五清真寺聞名 — 別錯過鮪魚椰子早餐。","フゲル・ミスキーで知られる街 — マス・フニもお楽しみに。"],v:["Old Friday Mosque","古星期五清真寺","フゲル・ミスキー"],b:["Lacquerware","漆器","漆器"],e:["Mas huni","鮪魚椰子早餐","マス・フニ"]},{n:["Maafushi","馬富士","マーフシ"],d:["Home to Bikini Beach — come hungry for Garudhiya fish soup.","以比基尼海灘聞名 — 別錯過魚湯。","ビキニビーチで知られる街 — ガルディヤもお楽しみに。"],v:["Bikini Beach","比基尼海灘","ビキニビーチ"],b:["Coconut crafts","椰子工藝品","ココナッツ工芸"],e:["Garudhiya fish soup","魚湯","ガルディヤ"]}]},
+{r:"asia",c:["Brunei","汶萊","ブルネイ"],cities:[{n:["Bandar Seri Begawan","斯里巴加灣市","バンダル・スリ・ブガワン"],d:["Home to Omar Ali Saifuddien Mosque — come hungry for Ambuyat.","以奧瑪阿里清真寺聞名 — 別錯過安布亞特。","オマール・アリ・サイフディン・モスクで知られる街 — アンブヤットもお楽しみに。"],v:["Omar Ali Saifuddien Mosque","奧瑪阿里清真寺","オマール・アリ・サイフディン・モスク"],b:["Brunei woven cloth","汶萊織布","ブルネイ織布"],e:["Ambuyat","安布亞特","アンブヤット"]},{n:["Kuala Belait","瓜拉馬來奕","クアラ・ブライト"],d:["Home to Billionth Barrel Monument — come hungry for Nasi katok.","以十億桶石油紀念碑聞名 — 別錯過炸雞飯。","10億バレル記念碑で知られる街 — ナシ・カトックもお楽しみに。"],v:["Billionth Barrel Monument","十億桶石油紀念碑","10億バレル記念碑"],b:["Local kuih cakes","在地糕點","地元のクエ"],e:["Nasi katok","炸雞飯","ナシ・カトック"]}]},
+{r:"asia",c:["Uzbekistan","烏茲別克","ウズベキスタン"],cities:[{n:["Samarkand","撒馬爾罕","サマルカンド"],d:["Home to Registan — come hungry for Plov.","以雷吉斯坦廣場聞名 — 別錯過抓飯。","レギスタンで知られる街 — プロフもお楽しみに。"],v:["Registan","雷吉斯坦廣場","レギスタン"],b:["Suzani embroidery","蘇扎尼刺繡","スザニ刺繍"],e:["Plov","抓飯","プロフ"]},{n:["Bukhara","布哈拉","ブハラ"],d:["Home to Kalyan Minaret — come hungry for Shashlik.","以卡揚宣禮塔聞名 — 別錯過烤肉串。","カラーン・ミナレットで知られる街 — シャシリクもお楽しみに。"],v:["Kalyan Minaret","卡揚宣禮塔","カラーン・ミナレット"],b:["Bukhara carpets","布哈拉地毯","ブハラ絨毯"],e:["Shashlik","烤肉串","シャシリク"]}]},
+{r:"asia",c:["Kazakhstan","哈薩克","カザフスタン"],cities:[{n:["Almaty","阿拉木圖","アルマトイ"],d:["Home to Kok Tobe — come hungry for Beshbarmak.","以綠山聞名 — 別錯過馬肉麵。","コクトベで知られる街 — ベシュバルマクもお楽しみに。"],v:["Kok Tobe","綠山","コクトベ"],b:["Kazakh felt & chocolate","毛氈與巧克力","フェルトとチョコ"],e:["Beshbarmak","馬肉麵","ベシュバルマク"]},{n:["Astana","阿斯塔納","アスタナ"],d:["Home to Bayterek Tower — come hungry for Kazy sausage.","以巴伊鐵列克塔聞名 — 別錯過馬肉香腸。","バイテレクで知られる街 — カズもお楽しみに。"],v:["Bayterek Tower","巴伊鐵列克塔","バイテレク"],b:["Nomad-style jewellery","遊牧風首飾","遊牧ジュエリー"],e:["Kazy sausage","馬肉香腸","カズ"]}]},
+{r:"asia",c:["Kyrgyzstan","吉爾吉斯","キルギス"],cities:[{n:["Bishkek","比什凱克","ビシュケク"],d:["Home to Ala-Too Square — come hungry for Laghman.","以阿拉圖廣場聞名 — 別錯過拉條子。","アラトー広場で知られる街 — ラグマンもお楽しみに。"],v:["Ala-Too Square","阿拉圖廣場","アラトー広場"],b:["Felt shyrdak rugs","毛氈地毯","シルダク"],e:["Laghman","拉條子","ラグマン"]},{n:["Issyk-Kul","伊塞克湖","イシククル"],d:["Home to Issyk-Kul Lake — come hungry for Ashlyan-fu.","以伊塞克湖聞名 — 別錯過涼粉。","イシククル湖で知られる街 — アシュランフーもお楽しみに。"],v:["Issyk-Kul Lake","伊塞克湖","イシククル湖"],b:["Honey & dried apricots","蜂蜜與杏乾","蜂蜜と干し杏"],e:["Ashlyan-fu","涼粉","アシュランフー"]}]},
+{r:"asia",c:["Georgia","喬治亞","ジョージア"],cities:[{n:["Tbilisi","第比利斯","トビリシ"],d:["Home to Narikala Fortress — come hungry for Khachapuri.","以納里卡拉堡壘聞名 — 別錯過起司船餅。","ナリカラ要塞で知られる街 — ハチャプリもお楽しみに。"],v:["Narikala Fortress","納里卡拉堡壘","ナリカラ要塞"],b:["Georgian wine","喬治亞葡萄酒","ジョージアワイン"],e:["Khachapuri","起司船餅","ハチャプリ"]},{n:["Batumi","巴統","バトゥミ"],d:["Home to Batumi Boulevard — come hungry for Adjarian khachapuri.","以巴統海濱大道聞名 — 別錯過阿扎爾起司餅。","バトゥミ大通りで知られる街 — アジャリア・ハチャプリもお楽しみに。"],v:["Batumi Boulevard","巴統海濱大道","バトゥミ大通り"],b:["Adjarian crafts","阿扎爾工藝品","アジャリア工芸"],e:["Adjarian khachapuri","阿扎爾起司餅","アジャリア・ハチャプリ"]}]},
+{r:"asia",c:["Armenia","亞美尼亞","アルメニア"],cities:[{n:["Yerevan","葉里溫","エレバン"],d:["Home to Republic Square — come hungry for Khorovats.","以共和國廣場聞名 — 別錯過烤肉。","共和国広場で知られる街 — ホロヴァツもお楽しみに。"],v:["Republic Square","共和國廣場","共和国広場"],b:["Armenian brandy","亞美尼亞白蘭地","アルメニアブランデー"],e:["Khorovats","烤肉","ホロヴァツ"]},{n:["Gyumri","久姆里","ギュムリ"],d:["Home to Kumayri Old Town — come hungry for Harisa.","以庫邁里老城聞名 — 別錯過麥粥肉。","クマイリ旧市街で知られる街 — ハリサもお楽しみに。"],v:["Kumayri Old Town","庫邁里老城","クマイリ旧市街"],b:["Gyumri crafts","久姆里工藝品","ギュムリ工芸"],e:["Harisa","麥粥肉","ハリサ"]}]},
+{r:"asia",c:["Turkey","土耳其","トルコ"],cities:[{n:["Istanbul","伊斯坦堡","イスタンブール"],d:["Home to Hagia Sophia — come hungry for Kebabs & meze.","以聖索菲亞大教堂聞名 — 別錯過烤肉與前菜。","アヤソフィアで知られる街 — ケバブとメゼもお楽しみに。"],v:["Hagia Sophia","聖索菲亞大教堂","アヤソフィア"],b:["Turkish delight & ceramics","軟糖與陶瓷","ロクムと陶器"],e:["Kebabs & meze","烤肉與前菜","ケバブとメゼ"]},{n:["Goreme (Cappadocia)","格雷梅（卡帕多奇亞）","ギョレメ（カッパドキア）"],d:["Home to Goreme Open-Air Museum — come hungry for Testi kebab.","以格雷梅露天博物館聞名 — 別錯過陶罐烤肉。","ギョレメ野外博物館で知られる街 — テスティ・ケバブもお楽しみに。"],v:["Goreme Open-Air Museum","格雷梅露天博物館","ギョレメ野外博物館"],b:["Cappadocia pottery","卡帕多奇亞陶器","カッパドキア陶器"],e:["Testi kebab","陶罐烤肉","テスティ・ケバブ"]}]},
+{r:"asia",c:["Bangladesh","孟加拉","バングラデシュ"],cities:[{n:["Dhaka","達卡","ダッカ"],d:["Home to Lalbagh Fort — come hungry for Biryani & bharta.","以拉爾巴格堡聞名 — 別錯過香飯與搗菜。","ラールバーグ城で知られる街 — ビリヤニとボルタもお楽しみに。"],v:["Lalbagh Fort","拉爾巴格堡","ラールバーグ城"],b:["Jamdani sarees","賈姆達尼紗麗","ジャムダニ"],e:["Biryani & bharta","香飯與搗菜","ビリヤニとボルタ"]},{n:["Cox's Bazar","科克斯巴扎爾","コックスバザール"],d:["Home to Cox's Bazar Beach — come hungry for Seafood curry.","以科克斯巴扎爾海灘聞名 — 別錯過海鮮咖哩。","コックスバザールビーチで知られる街 — シーフードカレーもお楽しみに。"],v:["Cox's Bazar Beach","科克斯巴扎爾海灘","コックスバザールビーチ"],b:["Seashell crafts","貝殼工藝品","貝殻工芸"],e:["Seafood curry","海鮮咖哩","シーフードカレー"]}]},
+{r:"europe",c:["Ireland","愛爾蘭","アイルランド"],cities:[{n:["Dublin","都柏林","ダブリン"],d:["Home to Trinity College & Book of Kells — come hungry for Irish stew.","以三一學院與凱爾經聞名 — 別錯過愛爾蘭燉肉。","トリニティ・カレッジで知られる街 — アイリッシュシチューもお楽しみに。"],v:["Trinity College & Book of Kells","三一學院與凱爾經","トリニティ・カレッジ"],b:["Irish wool & whiskey","愛爾蘭羊毛與威士忌","アイルランドウールとウイスキー"],e:["Irish stew","愛爾蘭燉肉","アイリッシュシチュー"]},{n:["Galway","戈爾韋","ゴールウェイ"],d:["Home to Latin Quarter — come hungry for Galway oysters.","以拉丁區聞名 — 別錯過戈爾韋生蠔。","ラテン・クォーターで知られる街 — ゴールウェイオイスターもお楽しみに。"],v:["Latin Quarter","拉丁區","ラテン・クォーター"],b:["Claddagh rings","克拉達戒指","クラダリング"],e:["Galway oysters","戈爾韋生蠔","ゴールウェイオイスター"]}]},
+{r:"europe",c:["Germany","德國","ドイツ"],cities:[{n:["Berlin","柏林","ベルリン"],d:["Home to Brandenburg Gate — come hungry for Currywurst.","以布蘭登堡門聞名 — 別錯過咖哩香腸。","ブランデンブルク門で知られる街 — カリーヴルストもお楽しみに。"],v:["Brandenburg Gate","布蘭登堡門","ブランデンブルク門"],b:["Berlin souvenirs","柏林紀念品","ベルリン土産"],e:["Currywurst","咖哩香腸","カリーヴルスト"]},{n:["Munich","慕尼黑","ミュンヘン"],d:["Home to Marienplatz — come hungry for Weisswurst & pretzel.","以瑪麗恩廣場聞名 — 別錯過白香腸與扭結餅。","マリエン広場で知られる街 — ヴァイスヴルストとプレッツェルもお楽しみに。"],v:["Marienplatz","瑪麗恩廣場","マリエン広場"],b:["Beer steins","啤酒杯","ビアジョッキ"],e:["Weisswurst & pretzel","白香腸與扭結餅","ヴァイスヴルストとプレッツェル"]}]},
+{r:"europe",c:["Belgium","比利時","ベルギー"],cities:[{n:["Brussels","布魯塞爾","ブリュッセル"],d:["Home to Grand Place — come hungry for Moules-frites.","以大廣場聞名 — 別錯過淡菜薯條。","グラン・プラスで知られる街 — ムール・フリットもお楽しみに。"],v:["Grand Place","大廣場","グラン・プラス"],b:["Belgian chocolate","比利時巧克力","ベルギーチョコ"],e:["Moules-frites","淡菜薯條","ムール・フリット"]},{n:["Bruges","布魯日","ブルージュ"],d:["Home to Belfry of Bruges — come hungry for Belgian waffles.","以布魯日鐘樓聞名 — 別錯過比利時鬆餅。","ブルージュ鐘楼で知られる街 — ベルギーワッフルもお楽しみに。"],v:["Belfry of Bruges","布魯日鐘樓","ブルージュ鐘楼"],b:["Lace","蕾絲","レース"],e:["Belgian waffles","比利時鬆餅","ベルギーワッフル"]}]},
+{r:"europe",c:["Denmark","丹麥","デンマーク"],cities:[{n:["Copenhagen","哥本哈根","コペンハーゲン"],d:["Home to Nyhavn — come hungry for Smorrebrod.","以新港聞名 — 別錯過開放式三明治。","ニューハウンで知られる街 — スモーブローもお楽しみに。"],v:["Nyhavn","新港","ニューハウン"],b:["Danish design goods","丹麥設計品","デンマークデザイン"],e:["Smorrebrod","開放式三明治","スモーブロー"]},{n:["Aarhus","奧胡斯","オーフス"],d:["Home to ARoS Museum — come hungry for Frikadeller.","以ARoS美術館聞名 — 別錯過丹麥肉丸。","ARoS美術館で知られる街 — フリカデラもお楽しみに。"],v:["ARoS Museum","ARoS美術館","ARoS美術館"],b:["Danish ceramics","丹麥陶瓷","デンマーク陶器"],e:["Frikadeller","丹麥肉丸","フリカデラ"]}]},
+{r:"europe",c:["Norway","挪威","ノルウェー"],cities:[{n:["Oslo","奧斯陸","オスロ"],d:["Home to Oslo Opera House — come hungry for Salmon dishes.","以奧斯陸歌劇院聞名 — 別錯過鮭魚料理。","オスロ・オペラハウスで知られる街 — サーモン料理もお楽しみに。"],v:["Oslo Opera House","奧斯陸歌劇院","オスロ・オペラハウス"],b:["Norwegian knitwear","挪威針織品","ノルウェーニット"],e:["Salmon dishes","鮭魚料理","サーモン料理"]},{n:["Bergen","卑爾根","ベルゲン"],d:["Home to Bryggen — come hungry for Bergen fish soup.","以布呂根聞名 — 別錯過卑爾根魚湯。","ブリッゲンで知られる街 — ベルゲン魚スープもお楽しみに。"],v:["Bryggen","布呂根","ブリッゲン"],b:["Rain gear & knitwear","雨具與針織品","レインウェアとニット"],e:["Bergen fish soup","卑爾根魚湯","ベルゲン魚スープ"]}]},
+{r:"europe",c:["Sweden","瑞典","スウェーデン"],cities:[{n:["Stockholm","斯德哥爾摩","ストックホルム"],d:["Home to Gamla Stan — come hungry for Meatballs & fika.","以老城聞名 — 別錯過肉丸與咖啡時光。","ガムラスタンで知られる街 — ミートボールとフィーカもお楽しみに。"],v:["Gamla Stan","老城","ガムラスタン"],b:["Dala horses","達拉木馬","ダーラナホース"],e:["Meatballs & fika","肉丸與咖啡時光","ミートボールとフィーカ"]},{n:["Gothenburg","哥德堡","ヨーテボリ"],d:["Home to Haga District — come hungry for Cinnamon buns.","以哈加區聞名 — 別錯過肉桂捲。","ハーガ地区で知られる街 — シナモンパンもお楽しみに。"],v:["Haga District","哈加區","ハーガ地区"],b:["Swedish glass","瑞典玻璃製品","スウェーデンガラス"],e:["Cinnamon buns","肉桂捲","シナモンパン"]}]},
+{r:"europe",c:["Finland","芬蘭","フィンランド"],cities:[{n:["Helsinki","赫爾辛基","ヘルシンキ"],d:["Home to Helsinki Cathedral — come hungry for Salmon soup.","以赫爾辛基大教堂聞名 — 別錯過鮭魚湯。","ヘルシンキ大聖堂で知られる街 — サーモンスープもお楽しみに。"],v:["Helsinki Cathedral","赫爾辛基大教堂","ヘルシンキ大聖堂"],b:["Marimekko & Finnish design","瑪莉美歌與芬蘭設計","マリメッコとデザイン"],e:["Salmon soup","鮭魚湯","サーモンスープ"]},{n:["Rovaniemi","羅瓦涅米","ロヴァニエミ"],d:["Home to Santa Claus Village — come hungry for Sauteed reindeer.","以聖誕老人村聞名 — 別錯過炒馴鹿肉。","サンタクロース村で知られる街 — トナカイ炒めもお楽しみに。"],v:["Santa Claus Village","聖誕老人村","サンタクロース村"],b:["Lapland crafts","拉普蘭工藝品","ラップランド工芸"],e:["Sauteed reindeer","炒馴鹿肉","トナカイ炒め"]}]},
+{r:"europe",c:["Estonia","愛沙尼亞","エストニア"],cities:[{n:["Tallinn","塔林","タリン"],d:["Home to Tallinn Old Town — come hungry for Elk soup & rye bread.","以塔林老城區聞名 — 別錯過麋鹿湯與黑麥麵包。","タリン旧市街で知られる街 — エルクスープとライ麦パンもお楽しみに。"],v:["Tallinn Old Town","塔林老城區","タリン旧市街"],b:["Amber & linen","琥珀與亞麻布","琥珀とリネン"],e:["Elk soup & rye bread","麋鹿湯與黑麥麵包","エルクスープとライ麦パン"]},{n:["Tartu","塔爾圖","タルトゥ"],d:["Home to University of Tartu — come hungry for Kama desserts.","以塔爾圖大學聞名 — 別錯過卡馬甜點。","タルトゥ大学で知られる街 — カマもお楽しみに。"],v:["University of Tartu","塔爾圖大學","タルトゥ大学"],b:["Estonian handicrafts","愛沙尼亞手工品","エストニア工芸"],e:["Kama desserts","卡馬甜點","カマ"]}]},
+{r:"europe",c:["Latvia","拉脫維亞","ラトビア"],cities:[{n:["Riga","里加","リーガ"],d:["Home to Art Nouveau District — come hungry for Grey peas & bacon.","以新藝術區聞名 — 別錯過灰豌豆培根。","アール・ヌーヴォー地区で知られる街 — グレーピースとベーコンもお楽しみに。"],v:["Art Nouveau District","新藝術區","アール・ヌーヴォー地区"],b:["Amber jewellery","琥珀首飾","琥珀ジュエリー"],e:["Grey peas & bacon","灰豌豆培根","グレーピースとベーコン"]},{n:["Jurmala","尤爾馬拉","ユールマラ"],d:["Home to Jomas Street — come hungry for Sklandrausis.","以約馬斯街聞名 — 別錯過胡蘿蔔派。","ヨマス通りで知られる街 — スクランドラウシスもお楽しみに。"],v:["Jomas Street","約馬斯街","ヨマス通り"],b:["Latvian ceramics","拉脫維亞陶瓷","ラトビア陶器"],e:["Sklandrausis","胡蘿蔔派","スクランドラウシス"]}]},
+{r:"europe",c:["Lithuania","立陶宛","リトアニア"],cities:[{n:["Vilnius","維爾紐斯","ヴィリニュス"],d:["Home to Gediminas Tower — come hungry for Cepelinai.","以格迪米納斯塔聞名 — 別錯過馬鈴薯餃。","ゲディミナス塔で知られる街 — ツェペリナイもお楽しみに。"],v:["Gediminas Tower","格迪米納斯塔","ゲディミナス塔"],b:["Amber","琥珀","琥珀"],e:["Cepelinai","馬鈴薯餃","ツェペリナイ"]},{n:["Kaunas","考納斯","カウナス"],d:["Home to Kaunas Castle — come hungry for Saltibarsciai.","以考納斯城堡聞名 — 別錯過冷甜菜湯。","カウナス城で知られる街 — シャルティバルシチャイもお楽しみに。"],v:["Kaunas Castle","考納斯城堡","カウナス城"],b:["Lithuanian linen","立陶宛亞麻布","リネン"],e:["Saltibarsciai","冷甜菜湯","シャルティバルシチャイ"]}]},
+{r:"europe",c:["Slovakia","斯洛伐克","スロバキア"],cities:[{n:["Bratislava","布拉提斯拉瓦","ブラチスラヴァ"],d:["Home to Bratislava Castle — come hungry for Bryndzove halusky.","以布拉提斯拉瓦城堡聞名 — 別錯過羊起司麵疙瘩。","ブラチスラヴァ城で知られる街 — ブリンドゾヴェ・ハルシュキもお楽しみに。"],v:["Bratislava Castle","布拉提斯拉瓦城堡","ブラチスラヴァ城"],b:["Slovak ceramics","斯洛伐克陶瓷","スロバキア陶器"],e:["Bryndzove halusky","羊起司麵疙瘩","ブリンドゾヴェ・ハルシュキ"]},{n:["Kosice","科希策","コシツェ"],d:["Home to St Elisabeth Cathedral — come hungry for Goulash.","以聖伊麗莎白大教堂聞名 — 別錯過燉牛肉。","聖エリザベス大聖堂で知られる街 — グヤーシュもお楽しみに。"],v:["St Elisabeth Cathedral","聖伊麗莎白大教堂","聖エリザベス大聖堂"],b:["Tokaj wine","托考伊葡萄酒","トカイワイン"],e:["Goulash","燉牛肉","グヤーシュ"]}]},
+{r:"europe",c:["Slovenia","斯洛維尼亞","スロベニア"],cities:[{n:["Ljubljana","盧布爾雅那","リュブリャナ"],d:["Home to Ljubljana Castle — come hungry for Struklji.","以盧布爾雅那城堡聞名 — 別錯過捲餅。","リュブリャナ城で知られる街 — シュトゥルクリもお楽しみに。"],v:["Ljubljana Castle","盧布爾雅那城堡","リュブリャナ城"],b:["Slovenian honey","斯洛維尼亞蜂蜜","スロベニア蜂蜜"],e:["Struklji","捲餅","シュトゥルクリ"]},{n:["Bled","布萊德","ブレッド"],d:["Home to Lake Bled — come hungry for Bled cream cake.","以布萊德湖聞名 — 別錯過布萊德奶油蛋糕。","ブレッド湖で知られる街 — ブレッドクリームケーキもお楽しみに。"],v:["Lake Bled","布萊德湖","ブレッド湖"],b:["Wooden crafts","木工藝品","木工芸"],e:["Bled cream cake","布萊德奶油蛋糕","ブレッドクリームケーキ"]}]},
+{r:"europe",c:["Romania","羅馬尼亞","ルーマニア"],cities:[{n:["Bucharest","布加勒斯特","ブカレスト"],d:["Home to Palace of the Parliament — come hungry for Sarmale.","以議會宮聞名 — 別錯過高麗菜捲。","議会宮殿で知られる街 — サルマーレもお楽しみに。"],v:["Palace of the Parliament","議會宮","議会宮殿"],b:["Romanian ceramics","羅馬尼亞陶瓷","ルーマニア陶器"],e:["Sarmale","高麗菜捲","サルマーレ"]},{n:["Brasov","布拉索夫","ブラショフ"],d:["Home to Black Church — come hungry for Mici.","以黑教堂聞名 — 別錯過烤肉捲。","黒の教会で知られる街 — ミチもお楽しみに。"],v:["Black Church","黑教堂","黒の教会"],b:["Transylvanian crafts","外西凡尼亞工藝品","トランシルヴァニア工芸"],e:["Mici","烤肉捲","ミチ"]}]},
+{r:"europe",c:["Bulgaria","保加利亞","ブルガリア"],cities:[{n:["Sofia","索菲亞","ソフィア"],d:["Home to Alexander Nevsky Cathedral — come hungry for Shopska salad.","以亞歷山大涅夫斯基大教堂聞名 — 別錯過索普斯卡沙拉。","アレクサンドル・ネフスキー大聖堂で知られる街 — ショプスカサラダもお楽しみに。"],v:["Alexander Nevsky Cathedral","亞歷山大涅夫斯基大教堂","アレクサンドル・ネフスキー大聖堂"],b:["Rose oil","玫瑰精油","ローズオイル"],e:["Shopska salad","索普斯卡沙拉","ショプスカサラダ"]},{n:["Plovdiv","普羅夫迪夫","プロヴディフ"],d:["Home to Old Town & Roman Theatre — come hungry for Banitsa.","以老城與羅馬劇場聞名 — 別錯過起司酥餅。","旧市街とローマ劇場で知られる街 — バニッツァもお楽しみに。"],v:["Old Town & Roman Theatre","老城與羅馬劇場","旧市街とローマ劇場"],b:["Bulgarian pottery","保加利亞陶器","ブルガリア陶器"],e:["Banitsa","起司酥餅","バニッツァ"]}]},
+{r:"europe",c:["Serbia","塞爾維亞","セルビア"],cities:[{n:["Belgrade","貝爾格勒","ベオグラード"],d:["Home to Kalemegdan — come hungry for Cevapi.","以卡萊梅格丹聞名 — 別錯過切瓦皮烤肉。","カレメグダンで知られる街 — チェヴァピもお楽しみに。"],v:["Kalemegdan","卡萊梅格丹","カレメグダン"],b:["Rakia fruit brandy","拉基亞水果白蘭地","ラキヤ"],e:["Cevapi","切瓦皮烤肉","チェヴァピ"]},{n:["Novi Sad","諾維薩德","ノヴィ・サド"],d:["Home to Petrovaradin Fortress — come hungry for Pljeskavica.","以彼得羅瓦拉丁堡壘聞名 — 別錯過塞爾維亞漢堡排。","ペトロヴァラディン要塞で知られる街 — プリェスカヴィツァもお楽しみに。"],v:["Petrovaradin Fortress","彼得羅瓦拉丁堡壘","ペトロヴァラディン要塞"],b:["Vojvodina wine","伏伊伏丁那葡萄酒","ヴォイヴォディナワイン"],e:["Pljeskavica","塞爾維亞漢堡排","プリェスカヴィツァ"]}]},
+{r:"europe",c:["Montenegro","蒙特內哥羅","モンテネグロ"],cities:[{n:["Kotor","科托爾","コトル"],d:["Home to Kotor Old Town — come hungry for Njeguši prosciutto.","以科托爾老城聞名 — 別錯過涅古什生火腿。","コトル旧市街で知られる街 — ニェグシ生ハムもお楽しみに。"],v:["Kotor Old Town","科托爾老城","コトル旧市街"],b:["Olive oil","橄欖油","オリーブオイル"],e:["Njeguši prosciutto","涅古什生火腿","ニェグシ生ハム"]},{n:["Budva","布德瓦","ブドヴァ"],d:["Home to Budva Old Town — come hungry for Buzara seafood.","以布德瓦老城聞名 — 別錯過海鮮布扎拉。","ブドヴァ旧市街で知られる街 — ブザラもお楽しみに。"],v:["Budva Old Town","布德瓦老城","ブドヴァ旧市街"],b:["Montenegrin wine","蒙特內哥羅葡萄酒","モンテネグロワイン"],e:["Buzara seafood","海鮮布扎拉","ブザラ"]}]},
+{r:"europe",c:["North Macedonia","北馬其頓","北マケドニア"],cities:[{n:["Skopje","斯科普里","スコピエ"],d:["Home to Stone Bridge — come hungry for Tavce gravce.","以石橋聞名 — 別錯過烤豆鍋。","石橋で知られる街 — タフチェ・グラフチェもお楽しみに。"],v:["Stone Bridge","石橋","石橋"],b:["Macedonian filigree","馬其頓銀絲工藝","フィリグリー"],e:["Tavce gravce","烤豆鍋","タフチェ・グラフチェ"]},{n:["Ohrid","奧赫里德","オフリド"],d:["Home to Lake Ohrid — come hungry for Ohrid trout.","以奧赫里德湖聞名 — 別錯過奧赫里德鱒魚。","オフリド湖で知られる街 — オフリドトラウトもお楽しみに。"],v:["Lake Ohrid","奧赫里德湖","オフリド湖"],b:["Ohrid pearls","奧赫里德珍珠","オフリド真珠"],e:["Ohrid trout","奧赫里德鱒魚","オフリドトラウト"]}]},
+{r:"europe",c:["Albania","阿爾巴尼亞","アルバニア"],cities:[{n:["Tirana","地拉那","ティラナ"],d:["Home to Skanderbeg Square — come hungry for Byrek.","以斯坎德培廣場聞名 — 別錯過酥皮餡餅。","スカンデルベグ広場で知られる街 — ブレクもお楽しみに。"],v:["Skanderbeg Square","斯坎德培廣場","スカンデルベグ広場"],b:["Albanian olive oil","阿爾巴尼亞橄欖油","アルバニアオリーブオイル"],e:["Byrek","酥皮餡餅","ブレク"]},{n:["Berat","培拉特","ベラト"],d:["Home to Berat Castle — come hungry for Tave kosi.","以培拉特城堡聞名 — 別錯過優格烤羊肉。","ベラト城で知られる街 — ターヴェ・コシもお楽しみに。"],v:["Berat Castle","培拉特城堡","ベラト城"],b:["Berat wine","培拉特葡萄酒","ベラトワイン"],e:["Tave kosi","優格烤羊肉","ターヴェ・コシ"]}]},
+{r:"europe",c:["Bosnia and Herzegovina","波士尼亞與赫塞哥維納","ボスニア・ヘルツェゴビナ"],cities:[{n:["Sarajevo","塞拉耶佛","サラエボ"],d:["Home to Bascarsija Old Town — come hungry for Cevapi.","以巴什查爾希亞舊城聞名 — 別錯過切瓦皮。","バシュチャルシヤで知られる街 — チェヴァピもお楽しみに。"],v:["Bascarsija Old Town","巴什查爾希亞舊城","バシュチャルシヤ"],b:["Copper coffee sets","銅咖啡具","銅コーヒーセット"],e:["Cevapi","切瓦皮","チェヴァピ"]},{n:["Mostar","莫斯塔爾","モスタル"],d:["Home to Stari Most — come hungry for Burek.","以老橋聞名 — 別錯過餡餅。","スタリ・モストで知られる街 — ブレクもお楽しみに。"],v:["Stari Most","老橋","スタリ・モスト"],b:["Mostar crafts","莫斯塔爾工藝品","モスタル工芸"],e:["Burek","餡餅","ブレク"]}]},
+{r:"europe",c:["Malta","馬爾他","マルタ"],cities:[{n:["Valletta","瓦萊塔","バレッタ"],d:["Home to St John's Co-Cathedral — come hungry for Pastizzi.","以聖約翰大教堂聞名 — 別錯過酥皮餡餅。","聖ヨハネ大聖堂で知られる街 — パスティッツィもお楽しみに。"],v:["St John's Co-Cathedral","聖約翰大教堂","聖ヨハネ大聖堂"],b:["Maltese glass","馬爾他玻璃","マルタガラス"],e:["Pastizzi","酥皮餡餅","パスティッツィ"]},{n:["Mdina","姆迪納","ムディーナ"],d:["Home to Mdina Old City — come hungry for Rabbit stew.","以姆迪納古城聞名 — 別錯過燉兔肉。","ムディーナ旧市街で知られる街 — ウサギシチューもお楽しみに。"],v:["Mdina Old City","姆迪納古城","ムディーナ旧市街"],b:["Mdina glass","姆迪納玻璃","ムディーナガラス"],e:["Rabbit stew","燉兔肉","ウサギシチュー"]}]},
+{r:"europe",c:["Cyprus","賽普勒斯","キプロス"],cities:[{n:["Nicosia","尼科西亞","ニコシア"],d:["Home to Ledra Street — come hungry for Halloumi.","以萊德拉街聞名 — 別錯過哈羅米起司。","レドラ通りで知られる街 — ハルーミもお楽しみに。"],v:["Ledra Street","萊德拉街","レドラ通り"],b:["Lefkara lace","萊夫卡拉蕾絲","レフカラレース"],e:["Halloumi","哈羅米起司","ハルーミ"]},{n:["Limassol","利馬索爾","リマソール"],d:["Home to Limassol Castle — come hungry for Souvla.","以利馬索爾城堡聞名 — 別錯過大塊烤肉。","リマソール城で知られる街 — スーヴラもお楽しみに。"],v:["Limassol Castle","利馬索爾城堡","リマソール城"],b:["Commandaria wine","卡曼達利亞甜酒","コマンダリア"],e:["Souvla","大塊烤肉","スーヴラ"]}]},
+{r:"europe",c:["Luxembourg","盧森堡","ルクセンブルク"],cities:[{n:["Luxembourg City","盧森堡市","ルクセンブルク市"],d:["Home to Bock Casemates — come hungry for Judd mat Gaardebounen.","以博克炮台聞名 — 別錯過煙燻豬頸豆鍋。","ボック地下要塞で知られる街 — ジュッドもお楽しみに。"],v:["Bock Casemates","博克炮台","ボック地下要塞"],b:["Luxembourg porcelain","盧森堡瓷器","ルクセンブルク磁器"],e:["Judd mat Gaardebounen","煙燻豬頸豆鍋","ジュッド"]},{n:["Vianden","維安登","ヴィアンデン"],d:["Home to Vianden Castle — come hungry for Riesling soup.","以維安登城堡聞名 — 別錯過雷司令湯。","ヴィアンデン城で知られる街 — リースリングスープもお楽しみに。"],v:["Vianden Castle","維安登城堡","ヴィアンデン城"],b:["Vianden crafts","維安登工藝品","ヴィアンデン工芸"],e:["Riesling soup","雷司令湯","リースリングスープ"]}]},
+{r:"europe",c:["Monaco","摩納哥","モナコ"],cities:[{n:["Monte Carlo","蒙地卡羅","モンテカルロ"],d:["Home to Monte Carlo Casino — come hungry for Barbajuan.","以蒙地卡羅賭場聞名 — 別錯過炸餃子。","モンテカルロカジノで知られる街 — バルバジュアンもお楽しみに。"],v:["Monte Carlo Casino","蒙地卡羅賭場","モンテカルロカジノ"],b:["Monaco souvenirs","摩納哥紀念品","モナコ土産"],e:["Barbajuan","炸餃子","バルバジュアン"]},{n:["Monaco City","摩納哥城","モナコ市"],d:["Home to Prince's Palace — come hungry for Socca.","以親王宮聞名 — 別錯過鷹嘴豆餅。","大公宮殿で知られる街 — ソッカもお楽しみに。"],v:["Prince's Palace","親王宮","大公宮殿"],b:["Monaco stamps","摩納哥郵票","モナコ切手"],e:["Socca","鷹嘴豆餅","ソッカ"]}]},
+{r:"europe",c:["Andorra","安道爾","アンドラ"],cities:[{n:["Andorra la Vella","安道爾城","アンドラ・ラ・ベリャ"],d:["Home to Casa de la Vall — come hungry for Escudella.","以卡薩德拉瓦爾聞名 — 別錯過燉肉湯。","カサ・デ・ラ・ヴァルで知られる街 — エスクデリャもお楽しみに。"],v:["Casa de la Vall","卡薩德拉瓦爾","カサ・デ・ラ・ヴァル"],b:["Andorran crafts","安道爾工藝品","アンドラ工芸"],e:["Escudella","燉肉湯","エスクデリャ"]},{n:["Escaldes-Engordany","埃斯卡爾德斯","エスカルデス"],d:["Home to Caldea Spa — come hungry for Trinxat.","以卡爾德亞溫泉聞名 — 別錯過馬鈴薯高麗菜泥。","カルデアで知られる街 — トリンシャットもお楽しみに。"],v:["Caldea Spa","卡爾德亞溫泉","カルデア"],b:["Pyrenees honey","比利牛斯蜂蜜","ピレネー蜂蜜"],e:["Trinxat","馬鈴薯高麗菜泥","トリンシャット"]}]},
+{r:"americas",c:["Costa Rica","哥斯大黎加","コスタリカ"],cities:[{n:["San Jose","聖荷西","サンホセ"],d:["Home to National Theatre — come hungry for Gallo pinto.","以國家劇院聞名 — 別錯過紅豆飯。","国立劇場で知られる街 — ガジョ・ピントもお楽しみに。"],v:["National Theatre","國家劇院","国立劇場"],b:["Costa Rican coffee","哥斯大黎加咖啡","コスタリカコーヒー"],e:["Gallo pinto","紅豆飯","ガジョ・ピント"]},{n:["La Fortuna","拉福圖納","ラ・フォルトゥナ"],d:["Home to Arenal Volcano — come hungry for Casado.","以阿雷納火山聞名 — 別錯過哥斯大黎加定食。","アレナル火山で知られる街 — カサードもお楽しみに。"],v:["Arenal Volcano","阿雷納火山","アレナル火山"],b:["Chocolate tour gifts","巧克力禮品","チョコ土産"],e:["Casado","哥斯大黎加定食","カサード"]}]},
+{r:"americas",c:["Panama","巴拿馬","パナマ"],cities:[{n:["Panama City","巴拿馬市","パナマシティ"],d:["Home to Panama Canal — come hungry for Sancocho.","以巴拿馬運河聞名 — 別錯過雞湯。","パナマ運河で知られる街 — サンコチョもお楽しみに。"],v:["Panama Canal","巴拿馬運河","パナマ運河"],b:["Panama hats","巴拿馬帽","パナマ帽"],e:["Sancocho","雞湯","サンコチョ"]},{n:["Boquete","博克特","ボケテ"],d:["Home to Baru Volcano — come hungry for Panamanian tamales.","以巴魯火山聞名 — 別錯過巴拿馬粽。","バルー火山で知られる街 — タマーレスもお楽しみに。"],v:["Baru Volcano","巴魯火山","バルー火山"],b:["Geisha coffee","藝妓咖啡","ゲイシャコーヒー"],e:["Panamanian tamales","巴拿馬粽","タマーレス"]}]},
+{r:"americas",c:["Colombia","哥倫比亞","コロンビア"],cities:[{n:["Bogota","波哥大","ボゴタ"],d:["Home to Gold Museum — come hungry for Ajiaco.","以黃金博物館聞名 — 別錯過雞肉馬鈴薯湯。","黄金博物館で知られる街 — アヒアコもお楽しみに。"],v:["Gold Museum","黃金博物館","黄金博物館"],b:["Colombian emeralds","哥倫比亞祖母綠","コロンビアエメラルド"],e:["Ajiaco","雞肉馬鈴薯湯","アヒアコ"]},{n:["Medellin","麥德林","メデジン"],d:["Home to Comuna 13 — come hungry for Bandeja paisa.","以十三區聞名 — 別錯過派薩大拼盤。","コムーナ13で知られる街 — バンデハ・パイサもお楽しみに。"],v:["Comuna 13","十三區","コムーナ13"],b:["Colombian coffee","哥倫比亞咖啡","コロンビアコーヒー"],e:["Bandeja paisa","派薩大拼盤","バンデハ・パイサ"]}]},
+{r:"americas",c:["Ecuador","厄瓜多","エクアドル"],cities:[{n:["Quito","基多","キト"],d:["Home to Quito Old Town — come hungry for Hornado.","以基多老城聞名 — 別錯過烤豬。","キト旧市街で知られる街 — オルナードもお楽しみに。"],v:["Quito Old Town","基多老城","キト旧市街"],b:["Ecuadorian Panama hats","厄瓜多巴拿馬帽","エクアドルパナマ帽"],e:["Hornado","烤豬","オルナード"]},{n:["Cuenca","昆卡","クエンカ"],d:["Home to Cuenca Cathedral — come hungry for Cuy.","以昆卡大教堂聞名 — 別錯過烤天竺鼠。","クエンカ大聖堂で知られる街 — クイもお楽しみに。"],v:["Cuenca Cathedral","昆卡大教堂","クエンカ大聖堂"],b:["Cuenca ceramics","昆卡陶瓷","クエンカ陶器"],e:["Cuy","烤天竺鼠","クイ"]}]},
+{r:"americas",c:["Bolivia","玻利維亞","ボリビア"],cities:[{n:["La Paz","拉巴斯","ラパス"],d:["Home to Mi Teleferico Cable Cars — come hungry for Saltenas.","以拉巴斯纜車聞名 — 別錯過鹹餡餅。","ミ・テレフェリコで知られる街 — サルテーニャもお楽しみに。"],v:["Mi Teleferico Cable Cars","拉巴斯纜車","ミ・テレフェリコ"],b:["Alpaca textiles","羊駝織品","アルパカ織物"],e:["Saltenas","鹹餡餅","サルテーニャ"]},{n:["Sucre","蘇克雷","スクレ"],d:["Home to Sucre Old Town — come hungry for Pique macho.","以蘇克雷老城聞名 — 別錯過牛肉拼盤。","スクレ旧市街で知られる街 — ピケ・マチョもお楽しみに。"],v:["Sucre Old Town","蘇克雷老城","スクレ旧市街"],b:["Bolivian chocolate","玻利維亞巧克力","ボリビアチョコ"],e:["Pique macho","牛肉拼盤","ピケ・マチョ"]}]},
+{r:"americas",c:["Uruguay","烏拉圭","ウルグアイ"],cities:[{n:["Montevideo","蒙特維多","モンテビデオ"],d:["Home to Ciudad Vieja — come hungry for Asado.","以老城聞名 — 別錯過烤肉。","シウダ・ビエハで知られる街 — アサードもお楽しみに。"],v:["Ciudad Vieja","老城","シウダ・ビエハ"],b:["Uruguayan leather goods","烏拉圭皮件","ウルグアイ革製品"],e:["Asado","烤肉","アサード"]},{n:["Punta del Este","埃斯特角城","プンタ・デル・エステ"],d:["Home to La Mano — come hungry for Chivito sandwich.","以手雕塑聞名 — 別錯過烏拉圭三明治。","ラ・マノで知られる街 — チビートもお楽しみに。"],v:["La Mano","手雕塑","ラ・マノ"],b:["Dulce de leche","牛奶焦糖醬","ドゥルセ・デ・レチェ"],e:["Chivito sandwich","烏拉圭三明治","チビート"]}]},
+{r:"americas",c:["Paraguay","巴拉圭","パラグアイ"],cities:[{n:["Asuncion","亞松森","アスンシオン"],d:["Home to Panteon de los Heroes — come hungry for Sopa paraguaya.","以英雄先賢祠聞名 — 別錯過起司玉米糕。","英雄廟で知られる街 — ソパ・パラグアジャもお楽しみに。"],v:["Panteon de los Heroes","英雄先賢祠","英雄廟"],b:["Nanduti lace","南杜蒂蕾絲","ニャンドゥティ"],e:["Sopa paraguaya","起司玉米糕","ソパ・パラグアジャ"]},{n:["Encarnacion","恩卡納西翁","エンカルナシオン"],d:["Home to Jesuit Missions — come hungry for Chipa.","以耶穌會傳教區聞名 — 別錯過起司麵包。","イエズス会伝道所で知られる街 — チパもお楽しみに。"],v:["Jesuit Missions","耶穌會傳教區","イエズス会伝道所"],b:["Terere herbs","巴拉圭冬青茶草","テレレ"],e:["Chipa","起司麵包","チパ"]}]},
+{r:"americas",c:["Dominican Republic","多明尼加","ドミニカ共和国"],cities:[{n:["Santo Domingo","聖多明哥","サントドミンゴ"],d:["Home to Colonial Zone — come hungry for Mangu & sancocho.","以殖民區聞名 — 別錯過芒古與燉湯。","植民地地区で知られる街 — マングーとサンコチョもお楽しみに。"],v:["Colonial Zone","殖民區","植民地地区"],b:["Larimar & amber","拉利瑪與琥珀","ラリマーと琥珀"],e:["Mangu & sancocho","芒古與燉湯","マングーとサンコチョ"]},{n:["Punta Cana","蓬塔卡納","プンタ・カナ"],d:["Home to Bavaro Beach — come hungry for Pescado frito.","以巴瓦羅海灘聞名 — 別錯過炸魚。","ババロビーチで知られる街 — ペスカド・フリートもお楽しみに。"],v:["Bavaro Beach","巴瓦羅海灘","ババロビーチ"],b:["Dominican rum","多明尼加蘭姆酒","ドミニカラム"],e:["Pescado frito","炸魚","ペスカド・フリート"]}]},
+{r:"americas",c:["Cuba","古巴","キューバ"],cities:[{n:["Havana","哈瓦那","ハバナ"],d:["Home to Old Havana — come hungry for Ropa vieja.","以哈瓦那老城聞名 — 別錯過手撕牛肉。","オールドハバナで知られる街 — ロパ・ビエハもお楽しみに。"],v:["Old Havana","哈瓦那老城","オールドハバナ"],b:["Cuban cigars & rum","古巴雪茄與蘭姆酒","キューバ葉巻とラム"],e:["Ropa vieja","手撕牛肉","ロパ・ビエハ"]},{n:["Trinidad","特立尼達","トリニダ"],d:["Home to Plaza Mayor — come hungry for Congri.","以主廣場聞名 — 別錯過豆飯。","プラサ・マヨールで知られる街 — コングリもお楽しみに。"],v:["Plaza Mayor","主廣場","プラサ・マヨール"],b:["Trinidad pottery","特立尼達陶器","トリニダ陶器"],e:["Congri","豆飯","コングリ"]}]},
+{r:"americas",c:["Jamaica","牙買加","ジャマイカ"],cities:[{n:["Kingston","京斯敦","キングストン"],d:["Home to Bob Marley Museum — come hungry for Jerk chicken.","以鮑勃馬利博物館聞名 — 別錯過牙買加烤雞。","ボブ・マーリー博物館で知られる街 — ジャークチキンもお楽しみに。"],v:["Bob Marley Museum","鮑勃馬利博物館","ボブ・マーリー博物館"],b:["Blue Mountain coffee","藍山咖啡","ブルーマウンテン"],e:["Jerk chicken","牙買加烤雞","ジャークチキン"]},{n:["Montego Bay","蒙特哥貝","モンテゴ・ベイ"],d:["Home to Doctor's Cave Beach — come hungry for Ackee & saltfish.","以醫生洞海灘聞名 — 別錯過阿基果鹹魚。","ドクターズケーブビーチで知られる街 — アキー＆ソルトフィッシュもお楽しみに。"],v:["Doctor's Cave Beach","醫生洞海灘","ドクターズケーブビーチ"],b:["Jamaican rum","牙買加蘭姆酒","ジャマイカラム"],e:["Ackee & saltfish","阿基果鹹魚","アキー＆ソルトフィッシュ"]}]},
+{r:"americas",c:["Bahamas","巴哈馬","バハマ"],cities:[{n:["Nassau","拿索","ナッソー"],d:["Home to Paradise Island — come hungry for Conch fritters.","以天堂島聞名 — 別錯過海螺丸子。","パラダイス島で知られる街 — コンクフリッターもお楽しみに。"],v:["Paradise Island","天堂島","パラダイス島"],b:["Straw crafts","草編工藝品","ストロー工芸"],e:["Conch fritters","海螺丸子","コンクフリッター"]},{n:["Exuma","埃克蘇馬","エグズーマ"],d:["Home to Swimming Pigs Beach — come hungry for Cracked conch.","以游泳豬海灘聞名 — 別錯過炸海螺。","スイミングピッグビーチで知られる街 — クラックドコンクもお楽しみに。"],v:["Swimming Pigs Beach","游泳豬海灘","スイミングピッグビーチ"],b:["Seashell crafts","貝殼工藝品","貝殻工芸"],e:["Cracked conch","炸海螺","クラックドコンク"]}]},
+{r:"americas",c:["Belize","貝里斯","ベリーズ"],cities:[{n:["Belize City","貝里斯市","ベリーズシティ"],d:["Home to Altun Ha — come hungry for Rice & beans.","以阿爾通哈遺址聞名 — 別錯過米飯豆子。","アルトゥン・ハで知られる街 — ライス＆ビーンズもお楽しみに。"],v:["Altun Ha","阿爾通哈遺址","アルトゥン・ハ"],b:["Belizean chocolate","貝里斯巧克力","ベリーズチョコ"],e:["Rice & beans","米飯豆子","ライス＆ビーンズ"]},{n:["San Pedro","聖佩德羅","サンペドロ"],d:["Home to Hol Chan Marine Reserve — come hungry for Ceviche.","以霍爾錢海洋保護區聞名 — 別錯過檸汁醃海鮮。","ホルチャン海洋保護区で知られる街 — セビーチェもお楽しみに。"],v:["Hol Chan Marine Reserve","霍爾錢海洋保護區","ホルチャン海洋保護区"],b:["Conch jewellery","海螺首飾","コンクジュエリー"],e:["Ceviche","檸汁醃海鮮","セビーチェ"]}]},
+{r:"americas",c:["El Salvador","薩爾瓦多","エルサルバドル"],cities:[{n:["San Salvador","聖薩爾瓦多","サンサルバドル"],d:["Home to El Rosario Church — come hungry for Pupusas.","以玫瑰教堂聞名 — 別錯過普普薩。","エル・ロサリオ教会で知られる街 — ププサもお楽しみに。"],v:["El Rosario Church","玫瑰教堂","エル・ロサリオ教会"],b:["Indigo crafts","藍染工藝品","藍染工芸"],e:["Pupusas","普普薩","ププサ"]},{n:["Suchitoto","蘇奇托托","スチトト"],d:["Home to Lake Suchitlan — come hungry for Yuca frita.","以蘇奇特蘭湖聞名 — 別錯過炸木薯。","スチトラン湖で知られる街 — ユカフリートもお楽しみに。"],v:["Lake Suchitlan","蘇奇特蘭湖","スチトラン湖"],b:["Salvadoran coffee","薩爾瓦多咖啡","エルサルバドルコーヒー"],e:["Yuca frita","炸木薯","ユカフリート"]}]},
+{r:"americas",c:["Barbados","巴貝多","バルバドス"],cities:[{n:["Bridgetown","布里奇頓","ブリッジタウン"],d:["Home to Historic Garrison — come hungry for Flying fish & cou cou.","以歷史駐軍區聞名 — 別錯過飛魚庫庫。","歴史的駐屯地で知られる街 — フライングフィッシュもお楽しみに。"],v:["Historic Garrison","歷史駐軍區","歴史的駐屯地"],b:["Barbados rum","巴貝多蘭姆酒","バルバドスラム"],e:["Flying fish & cou cou","飛魚庫庫","フライングフィッシュ"]},{n:["Speightstown","斯佩茨敦","スパイツタウン"],d:["Home to Arlington House — come hungry for Macaroni pie.","以阿靈頓之家聞名 — 別錯過通心粉派。","アーリントンハウスで知られる街 — マカロニパイもお楽しみに。"],v:["Arlington House","阿靈頓之家","アーリントンハウス"],b:["Barbados pottery","巴貝多陶器","バルバドス陶器"],e:["Macaroni pie","通心粉派","マカロニパイ"]}]},
+{r:"americas",c:["Saint Lucia","聖露西亞","セントルシア"],cities:[{n:["Castries","卡斯特里","カストリーズ"],d:["Home to Derek Walcott Square — come hungry for Green fig & saltfish.","以沃爾科特廣場聞名 — 別錯過青香蕉鹹魚。","デレク・ウォルコット広場で知られる街 — グリーンフィグもお楽しみに。"],v:["Derek Walcott Square","沃爾科特廣場","デレク・ウォルコット広場"],b:["St Lucia cocoa","聖露西亞可可","セントルシアカカオ"],e:["Green fig & saltfish","青香蕉鹹魚","グリーンフィグ"]},{n:["Soufriere","蘇弗里耶爾","スフレール"],d:["Home to The Pitons — come hungry for Bouyon.","以皮頓山聞名 — 別錯過濃湯。","ピトンズで知られる街 — ブイヨンもお楽しみに。"],v:["The Pitons","皮頓山","ピトンズ"],b:["Banana crafts","香蕉工藝品","バナナ工芸"],e:["Bouyon","濃湯","ブイヨン"]}]},
+{r:"americas",c:["Trinidad and Tobago","千里達及托巴哥","トリニダード・トバゴ"],cities:[{n:["Port of Spain","西班牙港","ポートオブスペイン"],d:["Home to Queen's Park Savannah — come hungry for Doubles.","以女王公園大草原聞名 — 別錯過雙餅。","クイーンズパークサバンナで知られる街 — ダブルスもお楽しみに。"],v:["Queen's Park Savannah","女王公園大草原","クイーンズパークサバンナ"],b:["Trinidad cocoa","千里達可可","トリニダードカカオ"],e:["Doubles","雙餅","ダブルス"]},{n:["Tobago","多巴哥島","トバゴ島"],d:["Home to Pigeon Point — come hungry for Crab & dumpling.","以鴿子角聞名 — 別錯過螃蟹餃子。","ピジョンポイントで知られる街 — クラブ＆ダンプリングもお楽しみに。"],v:["Pigeon Point","鴿子角","ピジョンポイント"],b:["Tobago crafts","多巴哥工藝品","トバゴ工芸"],e:["Crab & dumpling","螃蟹餃子","クラブ＆ダンプリング"]}]},
+{r:"americas",c:["Guatemala","瓜地馬拉","グアテマラ"],cities:[{n:["Antigua","安提瓜","アンティグア"],d:["Home to Santa Catalina Arch — come hungry for Pepian.","以聖卡塔利娜拱門聞名 — 別錯過佩皮安燉肉。","サンタ・カタリーナアーチで知られる街 — ペピアンもお楽しみに。"],v:["Santa Catalina Arch","聖卡塔利娜拱門","サンタ・カタリーナアーチ"],b:["Jade jewellery","翡翠首飾","ヒスイジュエリー"],e:["Pepian","佩皮安燉肉","ペピアン"]},{n:["Guatemala City","瓜地馬拉市","グアテマラシティ"],d:["Home to National Palace — come hungry for Kak'ik.","以國家宮殿聞名 — 別錯過火雞湯。","国立宮殿で知られる街 — カックイックもお楽しみに。"],v:["National Palace","國家宮殿","国立宮殿"],b:["Guatemalan textiles","瓜地馬拉織品","グアテマラ織物"],e:["Kak'ik","火雞湯","カックイック"]}]},
+{r:"oceania",c:["Samoa","薩摩亞","サモア"],cities:[{n:["Apia","阿皮亞","アピア"],d:["Home to Robert Louis Stevenson Museum — come hungry for Palusami.","以史蒂文森博物館聞名 — 別錯過椰奶芋葉。","スティーヴンソン博物館で知られる街 — パルサミもお楽しみに。"],v:["Robert Louis Stevenson Museum","史蒂文森博物館","スティーヴンソン博物館"],b:["Siapo bark cloth","樹皮布","シアポ"],e:["Palusami","椰奶芋葉","パルサミ"]},{n:["Savai'i","薩瓦伊島","サバイイ島"],d:["Home to Alofaaga Blowholes — come hungry for Oka raw fish.","以噴水孔聞名 — 別錯過生魚沙拉。","アロファアガ潮吹き穴で知られる街 — オカもお楽しみに。"],v:["Alofaaga Blowholes","噴水孔","アロファアガ潮吹き穴"],b:["Samoan cocoa","薩摩亞可可","サモアカカオ"],e:["Oka raw fish","生魚沙拉","オカ"]}]},
+{r:"oceania",c:["Tonga","東加","トンガ"],cities:[{n:["Nuku'alofa","努瓜婁發","ヌクアロファ"],d:["Home to Royal Palace — come hungry for Lu pulu.","以王宮聞名 — 別錯過椰奶牛肉。","王宮で知られる街 — ルー・プルもお楽しみに。"],v:["Royal Palace","王宮","王宮"],b:["Tapa cloth","塔帕布","タパ布"],e:["Lu pulu","椰奶牛肉","ルー・プル"]},{n:["Vava'u","瓦瓦烏島","ババウ"],d:["Home to Swallows Cave — come hungry for Ota ika.","以燕子洞聞名 — 別錯過生魚沙拉。","ツバメ洞窟で知られる街 — オタ・イカもお楽しみに。"],v:["Swallows Cave","燕子洞","ツバメ洞窟"],b:["Vanilla","香草","バニラ"],e:["Ota ika","生魚沙拉","オタ・イカ"]}]},
+{r:"oceania",c:["Vanuatu","萬那杜","バヌアツ"],cities:[{n:["Port Vila","維拉港","ポートビラ"],d:["Home to Mele Cascades — come hungry for Lap-lap.","以梅萊瀑布聞名 — 別錯過拉普拉普。","メレ滝で知られる街 — ラプラプもお楽しみに。"],v:["Mele Cascades","梅萊瀑布","メレ滝"],b:["Vanuatu crafts","萬那杜工藝品","バヌアツ工芸"],e:["Lap-lap","拉普拉普","ラプラプ"]},{n:["Tanna","坦納島","タンナ島"],d:["Home to Mount Yasur — come hungry for Island cabbage dishes.","以亞蘇爾火山聞名 — 別錯過島白菜料理。","ヤスール山で知られる街 — 島キャベツ料理もお楽しみに。"],v:["Mount Yasur","亞蘇爾火山","ヤスール山"],b:["Tanna coffee","坦納咖啡","タンナコーヒー"],e:["Island cabbage dishes","島白菜料理","島キャベツ料理"]}]},
+{r:"oceania",c:["Palau","帛琉","パラオ"],cities:[{n:["Koror","科羅爾","コロール"],d:["Home to Belau National Museum — come hungry for Taro & seafood.","以帛琉國家博物館聞名 — 別錯過芋頭與海鮮。","パラオ国立博物館で知られる街 — タロとシーフードもお楽しみに。"],v:["Belau National Museum","帛琉國家博物館","パラオ国立博物館"],b:["Storyboard carvings","故事木雕","ストーリーボード"],e:["Taro & seafood","芋頭與海鮮","タロとシーフード"]},{n:["Rock Islands","洛克群島","ロックアイランド"],d:["Home to Jellyfish Lake — come hungry for Seafood platter.","以水母湖聞名 — 別錯過海鮮拼盤。","ジェリーフィッシュレイクで知られる街 — シーフードプラッターもお楽しみに。"],v:["Jellyfish Lake","水母湖","ジェリーフィッシュレイク"],b:["Palau souvenirs","帛琉紀念品","パラオ土産"],e:["Seafood platter","海鮮拼盤","シーフードプラッター"]}]},
+{r:"oceania",c:["Cook Islands","庫克群島","クック諸島"],cities:[{n:["Rarotonga","拉羅東加","ラロトンガ"],d:["Home to Muri Lagoon — come hungry for Ika mata.","以穆里潟湖聞名 — 別錯過生魚沙拉。","ムリラグーンで知られる街 — イカ・マタもお楽しみに。"],v:["Muri Lagoon","穆里潟湖","ムリラグーン"],b:["Black pearls","黑珍珠","黒真珠"],e:["Ika mata","生魚沙拉","イカ・マタ"]},{n:["Aitutaki","艾圖塔基","アイツタキ"],d:["Home to Aitutaki Lagoon — come hungry for Umukai feast.","以艾圖塔基潟湖聞名 — 別錯過地爐大餐。","アイツタキラグーンで知られる街 — ウムカイもお楽しみに。"],v:["Aitutaki Lagoon","艾圖塔基潟湖","アイツタキラグーン"],b:["Tivaevae quilts","拼布被","ティヴァエヴァエ"],e:["Umukai feast","地爐大餐","ウムカイ"]}]},
+{r:"oceania",c:["Micronesia","密克羅尼西亞","ミクロネシア"],cities:[{n:["Pohnpei","波納佩","ポンペイ"],d:["Home to Nan Madol — come hungry for Sakau & reef fish.","以南馬都爾遺址聞名 — 別錯過薩考與礁魚。","ナンマドールで知られる街 — サカウとリーフフィッシュもお楽しみに。"],v:["Nan Madol","南馬都爾遺址","ナンマドール"],b:["Pohnpei pepper","波納佩胡椒","ポンペイ胡椒"],e:["Sakau & reef fish","薩考與礁魚","サカウとリーフフィッシュ"]},{n:["Chuuk","丘克","チューク"],d:["Home to Chuuk Lagoon — come hungry for Tuna dishes.","以丘克潟湖聞名 — 別錯過鮪魚料理。","チュークラグーンで知られる街 — マグロ料理もお楽しみに。"],v:["Chuuk Lagoon","丘克潟湖","チュークラグーン"],b:["Chuuk crafts","丘克工藝品","チューク工芸"],e:["Tuna dishes","鮪魚料理","マグロ料理"]}]},
+{r:"oceania",c:["Solomon Islands","索羅門群島","ソロモン諸島"],cities:[{n:["Honiara","霍尼亞拉","ホニアラ"],d:["Home to Central Market — come hungry for Poi & reef fish.","以中央市場聞名 — 別錯過芋泥與礁魚。","中央市場で知られる街 — ポイとリーフフィッシュもお楽しみに。"],v:["Central Market","中央市場","中央市場"],b:["Shell money & carvings","貝幣與木雕","貝貨と木彫り"],e:["Poi & reef fish","芋泥與礁魚","ポイとリーフフィッシュ"]},{n:["Gizo","吉佐","ギゾ"],d:["Home to Kennedy Island — come hungry for Cassava pudding.","以甘迺迪島聞名 — 別錯過木薯布丁。","ケネディ島で知られる街 — キャッサバプディングもお楽しみに。"],v:["Kennedy Island","甘迺迪島","ケネディ島"],b:["Solomon crafts","索羅門工藝品","ソロモン工芸"],e:["Cassava pudding","木薯布丁","キャッサバプディング"]}]},
+{r:"africa",c:["Kenya","肯亞","ケニア"],cities:[{n:["Nairobi","奈洛比","ナイロビ"],d:["Home to Nairobi National Park — come hungry for Nyama choma.","以奈洛比國家公園聞名 — 別錯過烤肉。","ナイロビ国立公園で知られる街 — ニャマ・チョマもお楽しみに。"],v:["Nairobi National Park","奈洛比國家公園","ナイロビ国立公園"],b:["Maasai beadwork","馬賽串珠","マサイビーズ"],e:["Nyama choma","烤肉","ニャマ・チョマ"]},{n:["Mombasa","蒙巴薩","モンバサ"],d:["Home to Fort Jesus — come hungry for Swahili biryani.","以耶穌堡聞名 — 別錯過斯瓦希里香飯。","フォート・ジーザスで知られる街 — スワヒリビリヤニもお楽しみに。"],v:["Fort Jesus","耶穌堡","フォート・ジーザス"],b:["Kikoi cloth","基科伊布","キコイ"],e:["Swahili biryani","斯瓦希里香飯","スワヒリビリヤニ"]}]},
+{r:"africa",c:["Rwanda","盧安達","ルワンダ"],cities:[{n:["Kigali","吉佳利","キガリ"],d:["Home to Kigali Genocide Memorial — come hungry for Brochettes.","以吉佳利紀念館聞名 — 別錯過烤肉串。","キガリ記念館で知られる街 — ブロシェットもお楽しみに。"],v:["Kigali Genocide Memorial","吉佳利紀念館","キガリ記念館"],b:["Agaseke baskets","阿加塞克籃","アガセケバスケット"],e:["Brochettes","烤肉串","ブロシェット"]},{n:["Musanze","穆桑澤","ムサンゼ"],d:["Home to Volcanoes National Park — come hungry for Isombe.","以火山國家公園聞名 — 別錯過木薯葉料理。","火山国立公園で知られる街 — イソンベもお楽しみに。"],v:["Volcanoes National Park","火山國家公園","火山国立公園"],b:["Rwandan coffee","盧安達咖啡","ルワンダコーヒー"],e:["Isombe","木薯葉料理","イソンベ"]}]},
+{r:"africa",c:["Uganda","烏干達","ウガンダ"],cities:[{n:["Kampala","坎帕拉","カンパラ"],d:["Home to Kasubi Tombs — come hungry for Matoke.","以卡蘇比王陵聞名 — 別錯過香蕉料理。","カスビ陵墓で知られる街 — マトケもお楽しみに。"],v:["Kasubi Tombs","卡蘇比王陵","カスビ陵墓"],b:["Barkcloth","樹皮布","樹皮布"],e:["Matoke","香蕉料理","マトケ"]},{n:["Entebbe","恩德培","エンテベ"],d:["Home to Uganda Wildlife Centre — come hungry for Rolex wrap.","以烏干達野生動物中心聞名 — 別錯過烏干達捲餅。","ウガンダ野生動物センターで知られる街 — ロレックスもお楽しみに。"],v:["Uganda Wildlife Centre","烏干達野生動物中心","ウガンダ野生動物センター"],b:["Ugandan coffee","烏干達咖啡","ウガンダコーヒー"],e:["Rolex wrap","烏干達捲餅","ロレックス"]}]},
+{r:"africa",c:["Botswana","波札那","ボツワナ"],cities:[{n:["Gaborone","嘉柏隆里","ハボローネ"],d:["Home to Three Dikgosi Monument — come hungry for Seswaa.","以三酋長紀念碑聞名 — 別錯過燉牛肉。","三首長記念碑で知られる街 — セスワーもお楽しみに。"],v:["Three Dikgosi Monument","三酋長紀念碑","三首長記念碑"],b:["Botswana baskets","波札那籃編","ボツワナバスケット"],e:["Seswaa","燉牛肉","セスワー"]},{n:["Maun","馬翁","マウン"],d:["Home to Okavango Delta — come hungry for Bogobe porridge.","以奧卡萬戈三角洲聞名 — 別錯過高粱粥。","オカバンゴデルタで知られる街 — ボゴベもお楽しみに。"],v:["Okavango Delta","奧卡萬戈三角洲","オカバンゴデルタ"],b:["Safari crafts","獵遊工藝品","サファリ工芸"],e:["Bogobe porridge","高粱粥","ボゴベ"]}]},
+{r:"africa",c:["Namibia","納米比亞","ナミビア"],cities:[{n:["Windhoek","溫得和克","ウィントフック"],d:["Home to Christ Church — come hungry for Kapana.","以基督教堂聞名 — 別錯過烤肉。","キリスト教会で知られる街 — カパナもお楽しみに。"],v:["Christ Church","基督教堂","キリスト教会"],b:["Namibian crafts","納米比亞工藝品","ナミビア工芸"],e:["Kapana","烤肉","カパナ"]},{n:["Swakopmund","斯瓦科普蒙德","スワコプムント"],d:["Home to Swakopmund Jetty — come hungry for Seafood & oysters.","以斯瓦科普蒙德碼頭聞名 — 別錯過海鮮與生蠔。","スワコプムント桟橋で知られる街 — シーフードとオイスターもお楽しみに。"],v:["Swakopmund Jetty","斯瓦科普蒙德碼頭","スワコプムント桟橋"],b:["Swakop souvenirs","斯瓦科普紀念品","スワコプ土産"],e:["Seafood & oysters","海鮮與生蠔","シーフードとオイスター"]}]},
+{r:"africa",c:["Zambia","尚比亞","ザンビア"],cities:[{n:["Lusaka","路沙卡","ルサカ"],d:["Home to Lusaka National Museum — come hungry for Ifisashi.","以路沙卡國家博物館聞名 — 別錯過花生燉菜。","ルサカ国立博物館で知られる街 — イフィサシもお楽しみに。"],v:["Lusaka National Museum","路沙卡國家博物館","ルサカ国立博物館"],b:["Zambian crafts","尚比亞工藝品","ザンビア工芸"],e:["Ifisashi","花生燉菜","イフィサシ"]},{n:["Livingstone","利文斯頓","リヴィングストン"],d:["Home to Victoria Falls — come hungry for Zambezi fish.","以維多利亞瀑布聞名 — 別錯過贊比西河魚。","ヴィクトリア滝で知られる街 — ザンベジ魚もお楽しみに。"],v:["Victoria Falls","維多利亞瀑布","ヴィクトリア滝"],b:["Mukuni crafts","穆庫尼工藝品","ムクニ工芸"],e:["Zambezi fish","贊比西河魚","ザンベジ魚"]}]},
+{r:"africa",c:["Zimbabwe","辛巴威","ジンバブエ"],cities:[{n:["Harare","哈拉雷","ハラレ"],d:["Home to National Gallery — come hungry for Sadza & stew.","以國家美術館聞名 — 別錯過薩扎與燉肉。","国立ギャラリーで知られる街 — サザとシチューもお楽しみに。"],v:["National Gallery","國家美術館","国立ギャラリー"],b:["Shona sculpture","紹納石雕","ショナ彫刻"],e:["Sadza & stew","薩扎與燉肉","サザとシチュー"]},{n:["Victoria Falls","維多利亞瀑布鎮","ヴィクトリアフォールズ"],d:["Home to Victoria Falls — come hungry for Bream & sadza.","以維多利亞瀑布聞名 — 別錯過鯛魚與薩扎。","ヴィクトリア滝で知られる街 — ブリームとサザもお楽しみに。"],v:["Victoria Falls","維多利亞瀑布","ヴィクトリア滝"],b:["Zimbabwe crafts","辛巴威工藝品","ジンバブエ工芸"],e:["Bream & sadza","鯛魚與薩扎","ブリームとサザ"]}]},
+{r:"africa",c:["Mozambique","莫三比克","モザンビーク"],cities:[{n:["Maputo","馬布托","マプト"],d:["Home to Maputo Fortress — come hungry for Piri piri prawns.","以馬布托堡壘聞名 — 別錯過霹靂蝦。","マプト要塞で知られる街 — ピリピリエビもお楽しみに。"],v:["Maputo Fortress","馬布托堡壘","マプト要塞"],b:["Capulana cloth","卡普拉納布","カプラーナ"],e:["Piri piri prawns","霹靂蝦","ピリピリエビ"]},{n:["Tofo","托福","トフォ"],d:["Home to Tofo Beach — come hungry for Matapa.","以托福海灘聞名 — 別錯過木薯葉燉菜。","トフォビーチで知られる街 — マタパもお楽しみに。"],v:["Tofo Beach","托福海灘","トフォビーチ"],b:["Mozambican crafts","莫三比克工藝品","モザンビーク工芸"],e:["Matapa","木薯葉燉菜","マタパ"]}]},
+{r:"africa",c:["Madagascar","馬達加斯加","マダガスカル"],cities:[{n:["Antananarivo","安塔那那利佛","アンタナナリボ"],d:["Home to Rova of Antananarivo — come hungry for Romazava.","以安塔那那利佛王宮聞名 — 別錯過牛肉蔬菜湯。","ルーヴァで知られる街 — ロマザヴァもお楽しみに。"],v:["Rova of Antananarivo","安塔那那利佛王宮","ルーヴァ"],b:["Raffia crafts","拉菲草工藝品","ラフィア工芸"],e:["Romazava","牛肉蔬菜湯","ロマザヴァ"]},{n:["Nosy Be","諾西貝島","ノシベ"],d:["Home to Lokobe Reserve — come hungry for Coconut seafood.","以洛科貝保護區聞名 — 別錯過椰子海鮮。","ロコベ保護区で知られる街 — ココナッツシーフードもお楽しみに。"],v:["Lokobe Reserve","洛科貝保護區","ロコベ保護区"],b:["Vanilla & ylang-ylang","香草與依蘭","バニラとイランイラン"],e:["Coconut seafood","椰子海鮮","ココナッツシーフード"]}]},
+{r:"africa",c:["Seychelles","塞席爾","セーシェル"],cities:[{n:["Victoria","維多利亞","ヴィクトリア"],d:["Home to Sir Selwyn Clarke Market — come hungry for Creole fish curry.","以克拉克市場聞名 — 別錯過克里奧魚咖哩。","セルウィン・クラーク市場で知られる街 — クレオール魚カレーもお楽しみに。"],v:["Sir Selwyn Clarke Market","克拉克市場","セルウィン・クラーク市場"],b:["Coco de mer","海椰子","ココ・ド・メール"],e:["Creole fish curry","克里奧魚咖哩","クレオール魚カレー"]},{n:["Praslin","普拉蘭島","プララン"],d:["Home to Vallee de Mai — come hungry for Octopus curry.","以五月谷聞名 — 別錯過章魚咖哩。","ヴァレ・ド・メで知られる街 — タコカレーもお楽しみに。"],v:["Vallee de Mai","五月谷","ヴァレ・ド・メ"],b:["Seychelles crafts","塞席爾工藝品","セーシェル工芸"],e:["Octopus curry","章魚咖哩","タコカレー"]}]},
+{r:"africa",c:["Tunisia","突尼西亞","チュニジア"],cities:[{n:["Tunis","突尼斯","チュニス"],d:["Home to Medina of Tunis — come hungry for Brik.","以突尼斯麥地那聞名 — 別錯過炸餡餅。","チュニス旧市街で知られる街 — ブリックもお楽しみに。"],v:["Medina of Tunis","突尼斯麥地那","チュニス旧市街"],b:["Tunisian ceramics","突尼西亞陶瓷","チュニジア陶器"],e:["Brik","炸餡餅","ブリック"]},{n:["Sidi Bou Said","西迪布賽義德","シディ・ブ・サイド"],d:["Home to Blue & White Village — come hungry for Couscous.","以藍白小鎮聞名 — 別錯過庫斯庫斯。","青と白の村で知られる街 — クスクスもお楽しみに。"],v:["Blue & White Village","藍白小鎮","青と白の村"],b:["Jasmine perfume","茉莉香水","ジャスミン香水"],e:["Couscous","庫斯庫斯","クスクス"]}]},
+{r:"africa",c:["Qatar","卡達","カタール"],cities:[{n:["Doha","杜哈","ドーハ"],d:["Home to Museum of Islamic Art — come hungry for Machboos.","以伊斯蘭藝術博物館聞名 — 別錯過香料飯。","イスラム美術館で知られる街 — マクブースもお楽しみに。"],v:["Museum of Islamic Art","伊斯蘭藝術博物館","イスラム美術館"],b:["Qatari souvenirs","卡達紀念品","カタール土産"],e:["Machboos","香料飯","マクブース"]},{n:["Lusail","路薩爾","ルサイル"],d:["Home to Lusail Boulevard — come hungry for Harees.","以路薩爾大道聞名 — 別錯過麥粥。","ルサイル大通りで知られる街 — ハリースもお楽しみに。"],v:["Lusail Boulevard","路薩爾大道","ルサイル大通り"],b:["Dates & Arabic coffee","椰棗與阿拉伯咖啡","デーツとアラビアコーヒー"],e:["Harees","麥粥","ハリース"]}]},
+{r:"africa",c:["Oman","阿曼","オマーン"],cities:[{n:["Muscat","馬斯喀特","マスカット"],d:["Home to Sultan Qaboos Grand Mosque — come hungry for Shuwa.","以蘇丹卡布斯大清真寺聞名 — 別錯過慢烤羊肉。","スルタン・カブース・グランドモスクで知られる街 — シュワもお楽しみに。"],v:["Sultan Qaboos Grand Mosque","蘇丹卡布斯大清真寺","スルタン・カブース・グランドモスク"],b:["Frankincense","乳香","乳香"],e:["Shuwa","慢烤羊肉","シュワ"]},{n:["Salalah","塞拉萊","サラーラ"],d:["Home to Al Baleed Archaeological Park — come hungry for Mashuai.","以巴利德考古公園聞名 — 別錯過烤魚。","アル・バリード考古公園で知られる街 — マシュアイもお楽しみに。"],v:["Al Baleed Archaeological Park","巴利德考古公園","アル・バリード考古公園"],b:["Omani silver","阿曼銀飾","オマーン銀細工"],e:["Mashuai","烤魚","マシュアイ"]}]},
+{r:"africa",c:["Saudi Arabia","沙烏地阿拉伯","サウジアラビア"],cities:[{n:["Riyadh","利雅德","リヤド"],d:["Home to Diriyah — come hungry for Kabsa.","以德拉伊耶聞名 — 別錯過卡布薩飯。","ディルイーヤで知られる街 — カブサもお楽しみに。"],v:["Diriyah","德拉伊耶","ディルイーヤ"],b:["Saudi dates & oud","沙烏地椰棗與沉香","デーツとウード"],e:["Kabsa","卡布薩飯","カブサ"]},{n:["Jeddah","吉達","ジェッダ"],d:["Home to Al-Balad — come hungry for Sayadiyah.","以巴拉德老城聞名 — 別錯過漁夫飯。","アル・バラッドで知られる街 — サイヤディーヤもお楽しみに。"],v:["Al-Balad","巴拉德老城","アル・バラッド"],b:["Jeddah souvenirs","吉達紀念品","ジェッダ土産"],e:["Sayadiyah","漁夫飯","サイヤディーヤ"]}]},
+{r:"africa",c:["Bahrain","巴林","バーレーン"],cities:[{n:["Manama","麥納瑪","マナーマ"],d:["Home to Bahrain Fort — come hungry for Machboos.","以巴林堡聞名 — 別錯過香料飯。","バーレーン要塞で知られる街 — マクブースもお楽しみに。"],v:["Bahrain Fort","巴林堡","バーレーン要塞"],b:["Bahraini pearls","巴林珍珠","バーレーン真珠"],e:["Machboos","香料飯","マクブース"]},{n:["Muharraq","穆哈拉格","ムハラック"],d:["Home to Pearling Path — come hungry for Tikka skewers.","以珍珠之路聞名 — 別錯過烤肉串。","真珠の道で知られる街 — ティッカもお楽しみに。"],v:["Pearling Path","珍珠之路","真珠の道"],b:["Halwa sweets","哈爾瓦甜點","ハルワ"],e:["Tikka skewers","烤肉串","ティッカ"]}]},
+{r:"africa",c:["Kuwait","科威特","クウェート"],cities:[{n:["Kuwait City","科威特市","クウェートシティ"],d:["Home to Kuwait Towers — come hungry for Mutabbaq samak.","以科威特塔聞名 — 別錯過魚飯。","クウェートタワーで知られる街 — ムタバッグ・サマクもお楽しみに。"],v:["Kuwait Towers","科威特塔","クウェートタワー"],b:["Kuwaiti souvenirs","科威特紀念品","クウェート土産"],e:["Mutabbaq samak","魚飯","ムタバッグ・サマク"]},{n:["Failaka Island","費拉卡島","ファイラカ島"],d:["Home to Failaka Heritage Village — come hungry for Harees.","以費拉卡遺產村聞名 — 別錯過麥粥。","ファイラカ遺跡村で知られる街 — ハリースもお楽しみに。"],v:["Failaka Heritage Village","費拉卡遺產村","ファイラカ遺跡村"],b:["Dates","椰棗","デーツ"],e:["Harees","麥粥","ハリース"]}]}
+]);
 </script>
 
 <script>
@@ -550,6 +651,50 @@ var ACTIVITY = [
 {n:["Old street & temple stroll","老街與廟宇散步","老街とお寺さんぽ"],d:["Walk an old street slowly — snacks, shrines and stories.","慢慢走一條老街 — 小吃、廟宇和故事。","古い通りをゆっくり — グルメ、寺社、物語。"]},
 {n:["Volunteer for a day","做一天志工","一日ボランティア"],d:["Help at a beach clean, a shelter or a community kitchen.","去海邊淨灘、收容所或社區廚房幫忙一天。","ビーチクリーン、シェルター、地域食堂で一日手伝う。"]}
 ];
+FOOD = FOOD.concat([
+{n:["Biryani night","香飯之夜","ビリヤニの夜"],d:["Layered, fragrant and worth the wait — chicken, lamb or veggie.","層層香料的燜飯 — 雞肉、羊肉或蔬菜，都值得等。","香り豊かな炊き込みご飯 — チキン、ラム、野菜、待つ価値あり。"]},
+{n:["Banh mi hunt","法包三明治巡禮","バインミー巡り"],d:["Crunchy baguette, pickles, pate and herbs — find the best stall.","脆法包、醃菜、肝醬和香草 — 找到最好吃的那一攤。","カリカリバゲット、なます、パテ、ハーブ — 一番の店を探す。"]},
+{n:["Souvlaki wraps","希臘烤肉捲","スブラキラップ"],d:["Charred skewers, warm pita, tzatziki and tomato — simple and perfect.","炭烤肉串、溫熱皮塔、優格黃瓜醬和番茄 — 簡單又完美。","炭火串、温かいピタ、ザジキ、トマト — シンプルで完璧。"]},
+{n:["Empanada night","恩潘納達之夜","エンパナーダの夜"],d:["Crispy pockets with beef, cheese or corn — dip, bite, repeat.","酥脆口袋餅，牛肉、起司或玉米餡 — 沾、咬、重複。","カリカリポケット、牛肉・チーズ・とうもろこし — つけて、かじって、繰り返す。"]},
+{n:["Falafel & hummus plate","炸豆丸鷹嘴豆泥盤","ファラフェルとフムス"],d:["Crisp falafel, creamy hummus, warm pita and a bright salad.","酥脆炸豆丸、綿密鷹嘴豆泥、溫皮塔和清爽沙拉。","カリカリファラフェル、濃厚フムス、温かいピタ、爽やかサラダ。"]},
+{n:["Bubble tea run","珍珠奶茶巡禮","タピオカ巡り"],d:["Pick a new topping combo — pearls, pudding, cheese foam, go.","選一個新配料組合 — 珍珠、布丁、奶蓋，出發。","新しいトッピングの組み合わせ — タピオカ、プリン、チーズフォーム。"]},
+{n:["Sweet crepe tour","可麗餅巡禮","クレープ巡り"],d:["Thin, warm and folded around Nutella, fruit or custard.","薄薄熱熱的可麗餅，包著榛果醬、水果或卡士達。","薄くて温かいクレープにヌテラ、果物、カスタード。"]},
+{n:["Croissant & coffee morning","可頌咖啡早晨","クロワッサンとコーヒーの朝"],d:["Flaky layers, good butter and a slow first coffee of the day.","層層酥皮、好奶油，配今天第一杯慢慢喝的咖啡。","サクサクの層、良いバター、一日最初のゆっくりコーヒー。"]},
+{n:["Tom yum night","冬蔭功夜","トムヤムの夜"],d:["Hot, sour and fragrant — prawns, lemongrass and lime leaf.","酸辣又香 — 鮮蝦、香茅和檸檬葉。","辛くて酸っぱくて香る — エビ、レモングラス、ライムリーフ。"]},
+{n:["Satay skewer night","沙嗲串燒夜","サテーの夜"],d:["Peanut sauce on everything — chicken, beef or tofu skewers.","什麼都沾花生醬 — 雞肉、牛肉或豆腐串。","何でもピーナッツソース — 鶏、牛、豆腐の串。"]},
+{n:["Pierogi party","波蘭餃子派對","ピエロギパーティー"],d:["Boil, then pan-fry with onions — potato, cheese or sauerkraut inside.","先煮再煎，配洋蔥 — 馬鈴薯、起司或酸菜餡。","茹でてから玉ねぎと焼く — じゃがいも、チーズ、ザワークラウト。"]},
+{n:["Roti canai & teh tarik","印度煎餅配拉茶","ロティチャナイとテータリック"],d:["Flaky roti, dhal curry and a frothy pulled tea.","層層煎餅、扁豆咖哩和泡沫拉茶。","サクサクロティ、ダルカレー、泡立つテータリック。"]},
+{n:["Acai & smoothie bowls","巴西莓果昔碗","アサイーボウル"],d:["Cold, purple and crunchy on top — granola, banana and berries.","冰涼紫色的果昔碗，上面脆脆的 — 麥片、香蕉和莓果。","冷たくて紫、上がカリカリ — グラノーラ、バナナ、ベリー。"]},
+{n:["Matcha dessert run","抹茶甜點巡禮","抹茶デザート巡り"],d:["Soft serve, cake or parfait — if it is green, it counts.","霜淇淋、蛋糕或聖代 — 只要是綠色的都算。","ソフトクリーム、ケーキ、パフェ — 緑ならOK。"]},
+{n:["Tiramisu & espresso night","提拉米蘇配濃縮咖啡","ティラミスとエスプレッソ"],d:["Coffee-soaked, cocoa-dusted and just bitter enough.","浸了咖啡、灑上可可粉，苦得剛剛好。","コーヒーが染みて、ココアをまぶして、ほろ苦さがちょうどいい。"]},
+{n:["Fish & chips Friday","炸魚薯條星期五","金曜のフィッシュ＆チップス"],d:["Crisp batter, thick chips, tartar sauce and a squeeze of lemon.","酥脆麵衣、粗薯條、塔塔醬，再擠一點檸檬。","カリカリ衣、太いポテト、タルタル、レモンを絞って。"]},
+{n:["Smoked BBQ ribs night","煙燻豬肋排夜","スモークBBQリブの夜"],d:["Low and slow, sticky glaze — napkins are not optional.","慢火煙燻、黏黏的醬 — 紙巾不可少。","低温でじっくり、照りのあるグレーズ — ナプキン必須。"]},
+{n:["Rainbow salad bowls","彩虹沙拉碗","レインボーサラダボウル"],d:["Every colour in one bowl — crunchy, fresh and actually filling.","所有顏色都在一碗裡 — 脆、清爽，而且真的吃得飽。","色とりどりを一つのボウルに — カリカリ、爽やか、ちゃんと満腹。"]},
+{n:["Congee & youtiao morning","粥配油條早晨","お粥と油条の朝"],d:["Silky rice porridge, fried dough sticks and a century egg if you like.","綿滑的粥、油條，敢的話再加一顆皮蛋。","なめらかなお粥、揚げパン、好きならピータンも。"]},
+{n:["Mango sticky rice night","芒果糯米飯夜","マンゴースティッキーライス"],d:["Sweet mango, coconut sticky rice and a pinch of sesame.","香甜芒果、椰奶糯米飯，再灑一點芝麻。","甘いマンゴー、ココナッツもち米、ごまをひとつまみ。"]}
+]);
+ACTIVITY = ACTIVITY.concat([
+{n:["Sunrise riverside walk","日出河濱散步","日の出の川辺散歩"],d:["Set an early alarm, walk by the water and watch the sky change.","訂一個早一點的鬧鐘，沿著水邊走，看天空變色。","早めに起きて、水辺を歩いて、空の色が変わるのを見る。"]},
+{n:["Pottery class","陶藝課","陶芸クラス"],d:["Spin a wheel, shape a cup and get your hands happily muddy.","拉坯、做一個杯子，讓手沾滿泥巴也開心。","ろくろを回して、カップを作って、手が泥だらけでも楽しい。"]},
+{n:["Painting & sketch afternoon","繪畫寫生午後","絵画とスケッチの午後"],d:["Take paints or pencils outside — draw what you actually see.","帶顏料或鉛筆到戶外 — 畫你真正看到的東西。","絵の具か鉛筆を持って外へ — 実際に見えるものを描く。"]},
+{n:["Bouldering session","抱石體驗","ボルダリング"],d:["No ropes, just colourful holds, soft mats and tired forearms.","不用繩子，只有彩色岩點、軟墊和痠的前臂。","ロープなし、カラフルなホールド、柔らかいマット、疲れる前腕。"]},
+{n:["Ice skating session","滑冰體驗","アイススケート"],d:["Glide, wobble, laugh — hot chocolate afterwards is mandatory.","滑行、搖晃、大笑 — 之後一定要喝熱可可。","滑って、ふらついて、笑って — 後はホットココア必須。"]},
+{n:["Botanical garden wander","植物園漫步","植物園さんぽ"],d:["Greenhouses, giant leaves and a bench in the shade.","溫室、巨大的葉子，還有樹蔭下的長椅。","温室、大きな葉、木陰のベンチ。"]},
+{n:["Small-town train day trip","小鎮火車一日遊","小さな町への電車日帰り旅"],d:["Pick a small town one train ride away and explore it slowly.","選一個坐火車就到的小鎮，慢慢逛一整天。","電車で一本の小さな町を選んで、ゆっくり探索。"]},
+{n:["Tea tasting afternoon","品茶午後","お茶のテイスティング"],d:["Brew three teas side by side and pick a favourite.","同時泡三種茶，選出你的最愛。","お茶を3種類並べて淹れて、お気に入りを選ぶ。"]},
+{n:["Escape room challenge","密室逃脫挑戰","脱出ゲーム"],d:["One room, one hour, a team you trust — no peeking at hints.","一個房間、一小時、一隊你信任的人 — 不准偷看提示。","一つの部屋、1時間、信頼できるチーム — ヒントは見ない。"]},
+{n:["Bowling night","保齡球之夜","ボウリングナイト"],d:["Rent the shoes, pick a lucky ball and celebrate every strike.","租鞋、選一顆幸運球，為每一次全倒慶祝。","靴を借りて、ラッキーボールを選んで、ストライクを祝う。"]},
+{n:["Mini golf round","迷你高爾夫","ミニゴルフ"],d:["Windmills, tiny bridges and very serious putting faces.","風車、小橋，還有非常認真的推桿表情。","風車、小さな橋、とても真剣なパットの顔。"]},
+{n:["Kayaking & paddleboarding","獨木舟與立槳","カヤックとSUP"],d:["Get on the water, paddle out and float back slowly.","下水、划出去，再慢慢漂回來。","水に出て、漕ぎ出して、ゆっくり浮かんで戻る。"]},
+{n:["City observation deck visit","城市觀景台","展望台へ"],d:["Go up high, find your neighbourhood and watch the lights come on.","登高、找到你住的街區，看燈一盞盞亮起來。","高く上がって、自分の街を探して、灯りがともるのを見る。"]},
+{n:["Planetarium show","天文館星空秀","プラネタリウム"],d:["Lean back, let the stars come to you and learn one constellation.","靠著椅背，讓星星來找你，認識一個新星座。","背もたれに寄りかかって、星に来てもらって、星座を一つ覚える。"]},
+{n:["Seasonal flower viewing","季節賞花","季節の花見"],d:["Cherry blossoms, autumn leaves or a flower field — go while it lasts.","櫻花、楓葉或花海 — 趁還在的時候去。","桜、紅葉、花畑 — 見られるうちに行く。"]},
+{n:["Camping night","露營夜","キャンプの夜"],d:["A tent, a simple dinner cooked outside and early sleep.","一頂帳篷、在戶外煮的簡單晚餐，還有早早睡覺。","テント、外で作る簡単な夕食、早めの就寝。"]},
+{n:["Castle & fortress visit","城堡要塞參觀","城と要塞見学"],d:["Climb the walls, read the old stories and find the best view.","爬上城牆、讀古老的故事，找到最好的景色。","城壁に登って、古い物語を読んで、一番の眺めを探す。"]},
+{n:["Zoo & wildlife park day","動物園日","動物園の日"],d:["Go early, watch feeding time and adopt a favourite animal.","早一點去、看餵食時間，選一隻你的最愛動物。","早めに行って、餌やりを見て、お気に入りの動物を決める。"]},
+{n:["Host a dinner party","辦一場晚餐派對","ディナーパーティーを開く"],d:["Cook for friends at home — one main dish, good music, no stress.","在家為朋友下廚 — 一道主菜、好音樂，不要有壓力。","家で友達に料理 — メイン一品、良い音楽、ストレスなし。"]},
+{n:["Try a new instrument","試學新樂器","新しい楽器に挑戦"],d:["Borrow or rent one — ukulele, kalimba or harmonica — and learn one song.","借或租一個 — 烏克麗麗、卡林巴或口琴 — 學會一首歌。","借りるかレンタル — ウクレレ、カリンバ、ハーモニカ — 一曲覚える。"]}
+]);
 /* City highlights: the 17 detailed-guide cities, one highlight of each kind */
 var HL_COUNTRIES = {japan:["Japan","日本","日本","#E85D4B"],korea:["South Korea","韓國","韓国","#2C5282"],thailand:["Thailand","泰國","タイ","#B8860B"],malaysia:["Malaysia","馬來西亞","マレーシア","#7A9E43"],taiwan:["Taiwan","台灣","台湾","#F08A24"]};
 var CITY_HL = [
@@ -581,7 +726,28 @@ I18N.ja.pickCityFirst="上の国を選んで — その都市がここに出ま�
 I18N.en.nowSpinCity="Now spin the big wheel for a city, or tap a city above.";
 I18N.zh.nowSpinCity="現在轉下面的大轉盤決定城市，或直接點上面的城市。";
 I18N.ja.nowSpinCity="下のルーレットで都市を決めるか、上の都市をタップしてね。";
-var state = { cat:"travel", region:"all", country:null, spinning:false };
+I18N.en.chooseCountry="Choose a country…";
+I18N.zh.chooseCountry="選擇國家…";
+I18N.ja.chooseCountry="国を選んで…";
+I18N.en.chooseCity="Choose a city…";
+I18N.zh.chooseCity="選擇城市…";
+I18N.ja.chooseCity="都市を選んで…";
+I18N.en.surpriseCountry="Surprise me — random country";
+I18N.zh.surpriseCountry="驚喜一下 — 隨機國家";
+I18N.ja.surpriseCountry="おまかせ — ランダムな国";
+I18N.en.surpriseCity="Surprise me — random city";
+I18N.zh.surpriseCity="驚喜一下 — 隨機城市";
+I18N.ja.surpriseCity="おまかせ — ランダムな都市";
+I18N.en.allContinents="All";
+I18N.zh.allContinents="全部";
+I18N.ja.allContinents="すべて";
+I18N.en.countriesWord="countries";
+I18N.zh.countriesWord="個國家";
+I18N.ja.countriesWord="か国";
+I18N.en.citiesWord="cities";
+I18N.zh.citiesWord="座城市";
+I18N.ja.citiesWord="都市";
+var state = { cat:"travel", region:"asia", country:null, city:null, spinning:false };
 var WHEEL_COLORS = ["#FF7A66","#FFB92E","#1FA8A0","#7BC96F","#B8A9E8","#FF9FB2","#2C7FB8","#F08A24","#E85D4B","#4FB286"];
 var wheelRotation = 0;
 function catMeta(id){ for (var i=0;i<CATS.length;i++) if (CATS[i].id===id) return CATS[i]; return CATS[0]; }
@@ -600,7 +766,7 @@ function buildWheel(){
     var dx=cx+(r*0.38)*Math.cos(am), dy=cy+(r*0.38)*Math.sin(am);
     parts += '<circle cx="'+dx.toFixed(1)+'" cy="'+dy.toFixed(1)+'" r="4" fill="rgba(255,255,255,.55)"/>';
   }
-  svg.innerHTML = '<g class="wheel-rotor" id="wheelRotor">'+parts+'</g><circle cx="160" cy="160" r="152" fill="none" stroke="#1E3A5F" stroke-width="4" opacity=".25"/>';
+  svg.innerHTML = '<g class="wheel-rotor" id="wheelRotor" transform="rotate(0 160 160)">'+parts+'</g><circle cx="160" cy="160" r="152" fill="none" stroke="#1E3A5F" stroke-width="4" opacity=".25"/>';
 }
 function buildCatTabs(){
   var host = document.getElementById("catTabs");
@@ -618,43 +784,100 @@ function pill(label, pressed, cls){
 }
 function buildRegionPills(){
   var host = document.getElementById("regionPills");
-  var html = pill(t("allRegions"), state.region==="all");
-  Object.keys(REGIONS).forEach(function(k){ html += pill(L([REGIONS[k].en, REGIONS[k].zh, REGIONS[k].ja]), state.region===k); });
-  host.innerHTML = html;
-  var btns = host.querySelectorAll(".pill");
-  btns[0].addEventListener("click", function(){ setRegion("all"); });
-  Object.keys(REGIONS).forEach(function(k, i){ btns[i+1].addEventListener("click", function(){ setRegion(k); }); });
-}
-function setRegion(k){ state.region=k; state.country=null; buildRegionPills(); buildCountryPills(); buildCityPills(); resetResult(); }
-function buildCountryPills(){
-  var host = document.getElementById("countryPills");
-  var list = filteredCountries();
-  host.innerHTML = list.map(function(e){ return pill(L(e.c), state.country===e, ""); }).join("");
+  var keys = ["all"].concat(Object.keys(REGIONS));
+  host.innerHTML = keys.map(function(k){ if (k==="all") return pill(t("allContinents"), state.region===k); return pill(L([REGIONS[k].en, REGIONS[k].zh, REGIONS[k].ja]), state.region===k); }).join("");
   host.querySelectorAll(".pill").forEach(function(b, i){
-    b.addEventListener("click", function(){ setCountry(list[i]); });
+    b.addEventListener("click", function(){ setRegion(keys[i]); });
   });
 }
-function setCountry(e){ state.country=e; buildCountryPills(); buildCityPills(); }
+function setRegion(k){ state.region=k; state.country=null; state.city=null; buildRegionPills(); buildCountryPills(); buildCityPills(); resetResult(); }
+/* --- plain select lists (country / city) — no search, no type-to-filter --- */
+function buildCountryPills(){
+  var sel = document.getElementById("countrySelect");
+  var hint = document.getElementById("countryHint");
+  if (!sel || !hint) return;
+  var entries = filteredCountries();
+  var html = '<option value="">'+esc(t("chooseCountry"))+'</option>';
+  html += '<option value="__random__">'+esc(t("surpriseCountry"))+'</option>';
+  entries.forEach(function(e, idx){
+    html += '<option value="'+idx+'">'+esc(L(e.c))+'</option>';
+  });
+  sel.innerHTML = html;
+  sel.disabled = false;
+  if (state.country){
+    var ci = entries.indexOf(state.country);
+    sel.value = ci >= 0 ? String(ci) : "";
+  } else {
+    sel.value = "";
+  }
+  var reg = REGIONS[state.region];
+  var regName = state.region==="all" ? t("allContinents") : (reg ? L([reg.en, reg.zh, reg.ja]) : "");
+  hint.textContent = regName + " · " + entries.length + " " + t("countriesWord");
+}
+function setCountry(e){ state.country=e; state.city=null; buildCountryPills(); buildCityPills(); }
+function selectCity(c){
+  if (!state.country || !c) return;
+  state.city = c;
+  buildCityPills();
+  showTravelResult(state.country, c);
+  document.getElementById("spinResult").scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+function pickRandomCity(){
+  if (!state.country) return;
+  var cities = state.country.cities;
+  if (!cities.length) return;
+  selectCity(cities[Math.floor(Math.random()*cities.length)]);
+}
 function buildCityPills(){
-  var host = document.getElementById("cityPills");
+  var sel = document.getElementById("citySelect");
+  var hint = document.getElementById("cityHint");
+  if (!sel || !hint) return;
   if (!state.country){
-    host.innerHTML = '<span style="font-weight:700;color:var(--muted);font-size:.88rem">'+t("pickCityFirst")+'</span>';
+    sel.innerHTML = '<option value="">'+esc(t("chooseCity"))+'</option>';
+    sel.value = ""; sel.disabled = true;
+    hint.textContent = t("pickCityFirst");
     return;
   }
   var e = state.country;
-  host.innerHTML = e.cities.map(function(c){ return pill(L(c.n), false, "city-pill"); }).join("");
-  host.querySelectorAll(".pill").forEach(function(b, i){
-    b.addEventListener("click", function(){ showTravelResult(e, e.cities[i]); document.getElementById("spinResult").scrollIntoView({behavior:"smooth", block:"nearest"}); });
+  var html = '<option value="">'+esc(t("chooseCity"))+'</option>';
+  html += '<option value="__random__">'+esc(t("surpriseCity"))+'</option>';
+  e.cities.forEach(function(c, idx){
+    html += '<option value="'+idx+'">'+esc(L(c.n))+'</option>';
   });
+  sel.innerHTML = html;
+  sel.disabled = false;
+  if (state.city){
+    var ci = e.cities.indexOf(state.city);
+    sel.value = ci >= 0 ? String(ci) : "";
+  } else {
+    sel.value = "";
+  }
+  hint.textContent = L(e.c) + " · " + e.cities.length + " " + t("citiesWord");
 }
-document.getElementById("spinCountryBtn").addEventListener("click", function(){
+function pickRandomCountry(){
   var list = filteredCountries();
   if (!list.length) return;
-  var pick = list[Math.floor(Math.random()*list.length)];
-  setCountry(pick);
+  var chosen = list[Math.floor(Math.random()*list.length)];
+  setCountry(chosen);
   var box = document.getElementById("spinResult");
-  box.innerHTML = '<div class="you-got">'+t("yourCountry")+'</div><div class="dest-name">'+L(pick.c)+'</div><p class="dest-desc">'+t("nowSpinCity")+'</p>';
+  box.innerHTML = '<div class="you-got">'+t("yourCountry")+'</div><div class="dest-name">'+L(chosen.c)+'</div><p class="dest-desc">'+t("nowSpinCity")+'</p>';
   box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop");
+}
+document.getElementById("spinCountryBtn").addEventListener("click", pickRandomCountry);
+document.getElementById("countrySelect").addEventListener("change", function(){
+  var v = this.value;
+  if (v === "__random__"){ pickRandomCountry(); return; }
+  if (v === ""){ state.country = null; state.city = null; buildCountryPills(); buildCityPills(); return; }
+  var e = filteredCountries()[Number(v)];
+  if (e) setCountry(e);
+});
+document.getElementById("citySelect").addEventListener("change", function(){
+  var v = this.value;
+  if (!state.country) return;
+  if (v === "__random__"){ pickRandomCity(); return; }
+  if (v === ""){ state.city = null; buildCityPills(); return; }
+  var c = state.country.cities[Number(v)];
+  if (c) selectCity(c);
 });
 function resetResult(){
   var box = document.getElementById("spinResult");
@@ -715,6 +938,38 @@ function showSimpleResult(item){
   box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop");
   document.getElementById("spinAgainBtn").addEventListener("click", spin);
 }
+function cubicBezierEase(x){
+  /* cubic-bezier(.12,.72,.08,1) — same easing as the previous CSS transition */
+  var x1=.12, y1=.72, x2=.08, y2=1;
+  if (x<=0) return 0; if (x>=1) return 1;
+  var t=x;
+  for (var i=0;i<8;i++){
+    var cx=3*(1-t)*(1-t)*t*x1 + 3*(1-t)*t*t*x2 + t*t*t;
+    var dx=3*(1-t)*(1-t)*x1 + 6*(1-t)*t*(x2-x1) + 3*t*t*(1-x2);
+    if (Math.abs(dx)<1e-6) break;
+    t = t - (cx-x)/dx;
+    if (t<0) t=0; if (t>1) t=1;
+  }
+  return 3*(1-t)*(1-t)*t*y1 + 3*(1-t)*t*t*y2 + t*t*t;
+}
+function animateRotor(fromDeg, toDeg){
+  var rotor = document.getElementById("wheelRotor");
+  if (!rotor) return;
+  function setAngle(a){ rotor.setAttribute("transform", "rotate("+a+" 160 160)"); }
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced){ setAngle(toDeg); return; }
+  var duration = 4600;
+  var startTime = null;
+  function frame(now){
+    if (startTime===null) startTime = now;
+    var p = (now - startTime) / duration;
+    if (p>=1){ setAngle(toDeg); return; }
+    if (p<0) p=0;
+    setAngle(fromDeg + (toDeg - fromDeg) * cubicBezierEase(p));
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
 function spin(){
   if (state.spinning) return;
   var pick, travelPick = null;
@@ -729,9 +984,9 @@ function spin(){
   state.spinning = true;
   var btn = document.getElementById("spinBtn");
   btn.disabled = true;
+  var prevRotation = wheelRotation;
   wheelRotation += 360*6 + Math.floor(Math.random()*360);
-  var rotor = document.getElementById("wheelRotor");
-  if (rotor) rotor.style.transform = "rotate("+wheelRotation+"deg)";
+  animateRotor(prevRotation, wheelRotation);
   setTimeout(function(){
     state.spinning = false; btn.disabled = false;
     if (travelPick) showTravelResult(travelPick.entry, travelPick.city); else showSimpleResult(pick);
