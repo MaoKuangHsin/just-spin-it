@@ -1,4 +1,4 @@
-# Just Spin It! — 轉一下就對了
+# Just Spin It! 
 
 Can't decide? Spin it! A cute spin-wheel game for every "I don't know, you pick!" moment.
 
